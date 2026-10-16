@@ -1,0 +1,39 @@
+# Java / Maven build outputs (all practice projects)
+target/
+*.class
+*.log
+hs_err_pid*
+replay_pid*
+
+# Local Maven dependency caches; keep wrapper and build configuration
+**/.mvn/repository/
+.m2/repository/
+
+# IDE-generated local metadata
+.idea/
+*.iml
+*.ipr
+*.iws
+.classpath
+.project
+.settings/
+.vscode/
+
+# Local test scratch space and PDF extraction intermediates
+.test-work/
+/tmp/
+*.tmp
+*.bak
+*.swp
+*~
+
+# Local credentials and environment overrides
+.env
+.env.*
+!.env.example
+!.env.sample
+
+# Operating system metadata
+.DS_Store
+Thumbs.db
+Desktop.ini

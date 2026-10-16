@@ -1,0 +1,3 @@
+/target/
+/.mvn/repository/
+/verification-run.log
