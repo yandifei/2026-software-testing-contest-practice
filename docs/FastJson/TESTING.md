@@ -9,7 +9,7 @@
 - Maven 3.9.11；JUnit Jupiter 5.10.2。
 - JaCoCo 0.8.11；PIT 1.15.3，JUnit 5 插件 1.2.1，`DEFAULTS` 变异算子。
 
-在项目根目录运行：
+以下命令和报告路径均相对于 [FastJson 项目根目录](../../FastJson_1779071911271/)，请先进入该目录运行：
 
 ```powershell
 # 一次完成干净构建、所有测试、规范检查、变异测试和结果汇总
@@ -35,7 +35,7 @@ mvn test org.pitest:pitest-maven:mutationCoverage
 
 `scripts/verify.ps1` 先执行 `clean`，避免历史 JaCoCo 数据累计产生虚高覆盖率。
 PIT 将超时变异计为检出，因此汇总同时提供 `KILLED/总数` 和 `detected/总数`，不混淆二者。
-最终测量及剩余变异说明见 [测试结果](docs/测试结果.md)。
+最终测量及剩余变异说明见 [测试结果](测试结果.md)。
 
 ## 测试组织
 

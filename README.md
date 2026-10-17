@@ -54,14 +54,16 @@
 .
 ├── README.md
 ├── .gitignore
+├── docs/
+│   ├── README.md                     # 文档导航
+│   ├── FastJson/                     # 测试说明与历史结果
+│   └── 学习资料/                     # JUnit 教学资料与视频录制说明
 ├── FastJson_1779071911271/
 │   ├── pom.xml
 │   ├── src/main/java/net/mooctest/    # 被测 JSON 相关实现
 │   ├── src/test/                     # 单元测试及测试配置
 │   ├── config/                       # 测试代码规范配置
-│   ├── scripts/verify.ps1            # 完整验证与结果汇总
-│   ├── TESTING.md                    # 测试组织和复现说明
-│   └── docs/测试结果.md              # 既有测量结果与缺陷分析
+│   └── scripts/verify.ps1            # 完整验证与结果汇总
 └── Mathematical-Expression_1776829302591/
     ├── pom.xml
     ├── src/main/java/net/mooctest/    # 表达式计算相关实现
@@ -70,9 +72,11 @@
 
 两个项目各自构建，仓库根目录没有聚合 `pom.xml`。
 
+文档与学习资料统一收录在 [docs 文档导航](docs/README.md)。
+
 | 项目 | 练习范围 | 说明 |
 | --- | --- | --- |
-| [FastJson](FastJson_1779071911271/) | JSON 解析、序列化、集合操作、类型转换、泛型与异常路径 | [测试说明](FastJson_1779071911271/TESTING.md)、[历史测试结果](FastJson_1779071911271/docs/测试结果.md) |
+| [FastJson](FastJson_1779071911271/) | JSON 解析、序列化、集合操作、类型转换、泛型与异常路径 | [测试说明](docs/FastJson/TESTING.md)、[历史测试结果](docs/FastJson/测试结果.md) |
 | [Mathematical-Expression](Mathematical-Expression_1776829302591/) | 数值、布尔、复数、函数、方程及表达式编译等行为 | [测试入口](Mathematical-Expression_1776829302591/src/test/java/net/mooctest/Mathematical_ExpressionTest.java) |
 
 历史测试结果保留其原始测量日期，当前结果请重新运行验证获取。
