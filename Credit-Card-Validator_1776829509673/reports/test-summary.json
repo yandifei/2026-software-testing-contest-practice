@@ -1,0 +1,42 @@
+[
+  {
+    "name": "net.mooctest.CardFormatTest",
+    "tests": 22,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0,
+    "seconds": 0.075
+  },
+  {
+    "name": "net.mooctest.CreditCardValidatorTest",
+    "tests": 55,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0,
+    "seconds": 0.162
+  },
+  {
+    "name": "net.mooctest.KnownDefectsTest",
+    "tests": 10,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0,
+    "seconds": 0.006
+  },
+  {
+    "name": "net.mooctest.LuhnValidatorTest",
+    "tests": 43,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0,
+    "seconds": 0.051
+  },
+  {
+    "name": "net.mooctest.ParserAndDateTest",
+    "tests": 26,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0,
+    "seconds": 0.025
+  }
+]

@@ -1,0 +1,5 @@
+# Local freeze manifests and execution logs are retained on the workstation.
+/baseline-source-hashes.json
+/baseline-test-hashes.json
+/target/
+*.log
