@@ -2,7 +2,30 @@
 
 最新验证：2026-10-23，Oracle Java 21.0.9、Maven 3.9.11、JUnit Jupiter 5.10.2、JaCoCo 0.8.11、PIT 1.15.3。
 
-**在生产源码不变的约束下，原始分支覆盖率为 98.73%，严格变异杀死率为 96.69%。两个指标无法达到 100%：剩余 3 个分支不可达，9 个变异与原实现等价。** 已逐项复核并保留全部分母，未排除生产类、分支或变异体。
+**调整后分支覆盖率为 100%（233/233），调整后变异杀死率为 100%（263/263）。原始 JaCoCo 分支覆盖率仍为 98.73%，原始 PIT 严格杀死率仍为 96.69%。** 按用户确认的调整方案，仅在独立派生报告中扣除已证明不可达的 3 个分支和等价的 9 个变异；源码、测试、pom.xml 和原始报告均未改变。
+
+## 调整口径及自动核验
+
+| 统计口径 | 分支覆盖率 | 严格变异杀死率 |
+| --- | --- | --- |
+| 原始工具口径，保留全部分母 | 233 / 236 = 98.73% | 263 / 272 = 96.69% |
+| 调整口径，仅扣除逐项批准的不可达分支、等价变异 | 233 / (236 - 3) = 100% | 263 / (272 - 9) = 100% |
+
+这是统计口径调整，不是新增加的执行覆盖，也不保证赛事平台承认这些扣除。原始 JaCoCo/PIT 报告没有被改写；两个 100% 只适用于明确标注的调整口径。
+
+- [调整后结果](reports/adjusted-metrics.json)：同时保存原始指标、扣除数量与调整后指标。
+- [逐项调整清单](reports/adjustment-policy.json)：精确指定包、文件、行号；变异还指定类、方法签名、变异算子和字节码指令索引，每项附理由。
+- [核验脚本](scripts/adjusted_metrics.py)：验证 38 个源码、配置和测试文件的哈希（仅归一化 LF/CRLF），检查类清单、分支总数和变异总数；不自动排除新增缺口。报告输入的哈希保存在派生结果中。
+- [核验器测试](scripts/test_adjusted_metrics.py)：检查新增存活变异、超时、额外未覆盖分支、缺失变异、重复扣除会使核验失败。
+
+在项目目录运行（只读分析已有结果，不重跑 Java 测试）：
+
+```powershell
+python scripts/adjusted_metrics.py --output reports/adjusted-metrics.json
+python -m unittest discover -s scripts -p 'test_adjusted_metrics.py' -v
+```
+
+只有调整后两个指标均为精确 100% 时，核验脚本返回 0；仍有缺口返回 1，清单失效或报告不一致返回 2。源码或测试变化后，必须重新执行 Java 验证并重新审查清单，不能沿用当前批准结果。派生结果只是当前输入的快照，是否仍有效应以重新执行核验器为准。
 
 ## 最新实测结果
 
@@ -52,7 +75,7 @@ PIT 使用项目原有 DEFAULTS 配置。此次 263 个检出全部是 KILLED，
 
 上述循环局部变量和区间在扫描中不受输入对象或外部回调修改。合法输入、子类化或并发调用均无法改变这些控制流不变量。JaCoCo 未覆盖的 3 行分别是 TypeChecker 第 61 行的循环回跳，以及 Verve 第 63、64 行的不可达赋值与 break。
 
-因此，保持当前字节码对应逻辑不变时，可由测试覆盖的分支上限是 **233/236**。本报告不通过过滤这些分支将统计改成 100%。
+因此，保持当前字节码对应逻辑不变时，原始分支覆盖上限是 **233/236**；经用户确认的独立调整口径扣除这 3 个分支后为 **233/233**。原始工具统计保持不变。
 
 ## 九个存活变异的等价证明
 
@@ -84,6 +107,7 @@ PIT 使用项目原有 DEFAULTS 配置。此次 263 个检出全部是 KILLED，
 | --- | --- |
 | 2026-10-22 初次任务 | 测试一次写完；首次 JVM 因 JaCoCo 中文绝对路径损坏启动失败，实际用例为 0；调整命令行路径后，145 个用例通过，261 KILLED、1 TIMED_OUT、10 SURVIVED |
 | 2026-10-23 用户要求继续提高并推送 | 授权后的第二轮开发，新增非数字字符断言及终止性断言；执行一次 clean + test + PIT，156 个用例通过，263 KILLED、9 SURVIVED |
+| 2026-10-23 用户确认按方案达到 100% | 增加独立调整清单、核验器和派生报告；复用已通过的 156 个用例对应的原始报告，Java 源码、测试、pom.xml 和原始报告不变 |
 
 第一轮“一次编写”的约束和执行记录属于上一阶段；本轮按用户后续要求继续增强，不把两轮工作描述成只执行过一次测试。
 
@@ -100,6 +124,17 @@ mvn -B -ntp clean test org.pitest:pitest-maven:1.15.3:mutationCoverage `
 ```
 
 如果本地 Maven 仓库被自定义，应将 `$agentJar` 指向实际 agent jar。上述命令中的用户目录也应避免空格；路径含空格时需要对传给 Surefire 的完整 `-javaagent` 参数再加引号。
+
+核验器读取的是 `reports/` 中的报告快照，不会自动读取本次 Maven 写入的 `target/`。需要核验刚生成的结果时，紧接 Maven 命令执行以下步骤；只有 Maven 成功才更新两份快照：
+
+```powershell
+if ($LASTEXITCODE -ne 0) { throw 'Maven verification failed; do not refresh report snapshots.' }
+Copy-Item target/site/jacoco/jacoco.xml reports/jacoco.xml
+Copy-Item target/pit-reports/mutations.xml reports/mutations.xml
+python scripts/adjusted_metrics.py --output reports/adjusted-metrics.json
+```
+
+若源码、测试或变异配置已有变化，应先重新审查调整清单及证明；不要为绕过核验失败而直接改写清单中的哈希或排除项。`test-summary.json` 是本次 156 个用例的历史摘要，后续运行的用例结果以新生成的 Surefire 报告为准。
 
 ## 已发现的业务问题和能力边界
 

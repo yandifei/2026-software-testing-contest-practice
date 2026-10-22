@@ -3,3 +3,4 @@
 /baseline-test-hashes.json
 /target/
 *.log
+__pycache__/

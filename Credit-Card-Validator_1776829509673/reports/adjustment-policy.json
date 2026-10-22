@@ -1,0 +1,202 @@
+{
+  "schema_version": 1,
+  "reviewed_against_commit": "52e5c00b206db85dce4ee771f5b85c1d90afad4e",
+  "scope": "Explicit reporting adjustments, not changes to official JaCoCo/PIT metrics",
+  "branch_total": 236,
+  "mutation_total": 272,
+  "classes": [
+    "net/mooctest/AmericanExpressValidator",
+    "net/mooctest/ChinaTUnionValidator",
+    "net/mooctest/ChinaUnionPayValidator",
+    "net/mooctest/CreditCardParser",
+    "net/mooctest/CreditCardType",
+    "net/mooctest/CreditCardValidator",
+    "net/mooctest/DankortValidator",
+    "net/mooctest/DateChecker",
+    "net/mooctest/DateFormatter",
+    "net/mooctest/DateParser",
+    "net/mooctest/DinersClubInternationalValidator",
+    "net/mooctest/DinersClubValidator",
+    "net/mooctest/DiscoverValidator",
+    "net/mooctest/InstaPaymenttValidator",
+    "net/mooctest/InterPaymentValidator",
+    "net/mooctest/InvalidCardException",
+    "net/mooctest/JCBValidator",
+    "net/mooctest/LankaPayValidator",
+    "net/mooctest/LuhnValidator",
+    "net/mooctest/MIRValidator",
+    "net/mooctest/MaestroUKValidator",
+    "net/mooctest/MaestroValidator",
+    "net/mooctest/MasterCardValidator",
+    "net/mooctest/NPS_PridnestrovieValidator",
+    "net/mooctest/RuPayValidator",
+    "net/mooctest/TroyValidator",
+    "net/mooctest/TypeChecker",
+    "net/mooctest/UATPValidator",
+    "net/mooctest/Validator",
+    "net/mooctest/VerveValidator",
+    "net/mooctest/VisaElectronValidator",
+    "net/mooctest/VisaValidator"
+  ],
+  "input_sha256_lf": {
+    "pom.xml": "a1cdb48fe18dbc1cf791e751f418b1c86b82a7da453ba222a5f6d348991ffc57",
+    "src/main/java/net/mooctest/AmericanExpressValidator.java": "5353eadb4100de5461a01b14915b0bce0a519aba025400d99614dbd6248ad9a7",
+    "src/main/java/net/mooctest/ChinaTUnionValidator.java": "e5d149f72e3315c62a58a43719feaeb1cca36d891f14d974d3e0c22861ab1c91",
+    "src/main/java/net/mooctest/ChinaUnionPayValidator.java": "901aeab228173c22af795b4824b70fd2a1e8ce043f98baceba9ab8410f557c3d",
+    "src/main/java/net/mooctest/CreditCardParser.java": "adda5e4f1a6d93d4ec2c44ebd8c0056fec2d52503645298370f97c34e2ccb3b0",
+    "src/main/java/net/mooctest/CreditCardType.java": "f482ecf7dd67b63d9c1135fc1a2e5b6b791a654f541475ffe52f5870db086a74",
+    "src/main/java/net/mooctest/CreditCardValidator.java": "9a4d4af07eefff820dde187cf50a76ca7c51855b0179e99badb0a0156c904d8d",
+    "src/main/java/net/mooctest/DankortValidator.java": "8896c91aae03b59dd8b546b1917e59e2ebf066b1aaa7f061781e61f4c989d3a0",
+    "src/main/java/net/mooctest/DateChecker.java": "d4e9037f4290b40ac786dc79ee9cbbe68ed6d5e9374403a6467e7f8d074cebf9",
+    "src/main/java/net/mooctest/DateFormatter.java": "2069218c3525f23c330ec9ad9d5ac0edb8629a550eea268a4d05e9a4b9f3371c",
+    "src/main/java/net/mooctest/DateParser.java": "bc3dc687679d011356a0aefce8e8237ccb34ae399cd71a79cef1a39f0d05c031",
+    "src/main/java/net/mooctest/DinersClubInternationalValidator.java": "bd8e9abbc3a5f5847095afbaf69f9518b221c5a8a7e24c3dee7c9bbc8d430978",
+    "src/main/java/net/mooctest/DinersClubValidator.java": "7e1e9d05210ac49d39b3a0183f49cc3e3ed030bed3afc7cf0ff0dba18186de2b",
+    "src/main/java/net/mooctest/DiscoverValidator.java": "7cae73e10547418f5c27e3d8e547dfb1c71b2477da7f03164678ce53debfd7c4",
+    "src/main/java/net/mooctest/InstaPaymenttValidator.java": "d0f9aff021def3834826e6a644541d8efe9cb6475ad4d43423bdea00a29176b3",
+    "src/main/java/net/mooctest/InterPaymentValidator.java": "015605fcca2d2cd2e9ea3b4d3a52a41f9bac12ef50820f9d41644839eb5c8486",
+    "src/main/java/net/mooctest/InvalidCardException.java": "62ecaeb3051bea4574885d30396e7dbd1f357b445f96c13aa027c24ce331f867",
+    "src/main/java/net/mooctest/JCBValidator.java": "bdd91ec4fb33274e3aa60d2d29dbfb4815412d7048d6dee3a9b83a46f5677b11",
+    "src/main/java/net/mooctest/LankaPayValidator.java": "247b3e4fabbd332bd9839f4ae5042d78a9b1bf83fa8345924c1d64e5f15bd879",
+    "src/main/java/net/mooctest/LuhnValidator.java": "c391e5f52fedcc78c73f899187bd1e5daa41cc7642fcc06b9072445bc58ec7f1",
+    "src/main/java/net/mooctest/MaestroUKValidator.java": "2f08d31c4bc9777ff81819bdeef7b59b401b4ae4f14b2a33411bc7fdb85390b1",
+    "src/main/java/net/mooctest/MaestroValidator.java": "b5e5f15d66572d170090d3448709980fe29be06fc0813c35077a61e66dc0371a",
+    "src/main/java/net/mooctest/MasterCardValidator.java": "a1b3afc1ac3b5a0575e515f1bffc9e25cbc8562e582f619c70f26bc90cf77c63",
+    "src/main/java/net/mooctest/MIRValidator.java": "26996ca9d4d11f5f0a02bf8e727ac7152bed67036f3ca7418fbd5dd807c0c420",
+    "src/main/java/net/mooctest/NPS_PridnestrovieValidator.java": "22ba0339908452cd2b837c03f79246033303463d91a34578253cafaa8852d0cd",
+    "src/main/java/net/mooctest/RuPayValidator.java": "7e23942e3f1a7d0182d28700f96908d701fe403b7bd9f5d879e48378bb9ef6e6",
+    "src/main/java/net/mooctest/TroyValidator.java": "37b4584a56f823a03dd39ae7c506671bf992c0077b166adcc4f7eb4477211b3c",
+    "src/main/java/net/mooctest/TypeChecker.java": "0e08f6c54df6e5ec893b10c2301d220321a29251172c94b691ced83ed7112b72",
+    "src/main/java/net/mooctest/UATPValidator.java": "5daab876f914bc2eab3e2e989a7a5f803ba5224bd2e9565c2579bf6219848925",
+    "src/main/java/net/mooctest/Validator.java": "df322f1083c652cedaa8a2e22b68f8d540acaef84f7f9d5c47380c078788526e",
+    "src/main/java/net/mooctest/VerveValidator.java": "a25987dcfb8b801de4c47936b10e7c1307a735e7cc705368d41ec2f639d137bb",
+    "src/main/java/net/mooctest/VisaElectronValidator.java": "95a8e33341d70f8d8cf29baef2c3d9f4735c34e5598ab265b2735da4b871c2ed",
+    "src/main/java/net/mooctest/VisaValidator.java": "bdfef756aaa67436edc941b1d033a5878d98050967f11555353eebad40681fd1",
+    "src/test/java/net/mooctest/CardFormatTest.java": "9c30c70300b6dacbb54cab15bdd44e5bd635e4ac8b79f1d61b8baec71955b650",
+    "src/test/java/net/mooctest/CreditCardValidatorTest.java": "0cecf29fb802311225968366c33add0f52ed3618f7bfa8961befdaa8178f8bb7",
+    "src/test/java/net/mooctest/KnownDefectsTest.java": "a84d8f6ba8e1bf406941f0234075b9a9725a89a4cfb43ca06e09ef9e0c4af119",
+    "src/test/java/net/mooctest/LuhnValidatorTest.java": "d3034173120fe16328e7e235f6ce9ab763aa4367679909dd460e4d72364d5c50",
+    "src/test/java/net/mooctest/ParserAndDateTest.java": "8a97ebd6e4f49a6bf6f641a354820b939c9c029bdc5efcd8d2add8637ff3972b"
+  },
+  "unreachable_branches": [
+    {
+      "package": "net/mooctest",
+      "file": "TypeChecker.java",
+      "line": 20,
+      "reason": "type starts null; every assignment exits with break before rechecking the loop."
+    },
+    {
+      "package": "net/mooctest",
+      "file": "TypeChecker.java",
+      "line": 56,
+      "reason": "All prior non-null assignments immediately break; reaching this line implies null."
+    },
+    {
+      "package": "net/mooctest",
+      "file": "VerveValidator.java",
+      "line": 62,
+      "reason": "The first scan rejected the same local integer against the same interval."
+    }
+  ],
+  "equivalent_mutations": [
+    {
+      "method": "algorithmCheck",
+      "descriptor": "(Ljava/lang/String;)Z",
+      "line": 76,
+      "mutator": "org.pitest.mutationtest.engine.gregor.mutators.MathMutator",
+      "indexes": [
+        120
+      ],
+      "reason": "The accumulator is negated; divisibility by ten is preserved, including int overflow.",
+      "class": "net.mooctest.LuhnValidator"
+    },
+    {
+      "method": "checkIINRanges",
+      "descriptor": "()Z",
+      "line": 53,
+      "mutator": "org.pitest.mutationtest.engine.gregor.mutators.ConditionalsBoundaryMutator",
+      "indexes": [
+        45
+      ],
+      "reason": "The second complete scan accepts the endpoint omitted by the first scan.",
+      "class": "net.mooctest.VerveValidator"
+    },
+    {
+      "method": "checkIINRanges",
+      "descriptor": "()Z",
+      "line": 61,
+      "mutator": "org.pitest.mutationtest.engine.gregor.mutators.ConditionalsBoundaryMutator",
+      "indexes": [
+        80
+      ],
+      "reason": "Inputs entering the second scan cannot match the already rejected identical interval.",
+      "class": "net.mooctest.VerveValidator"
+    },
+    {
+      "method": "checkIINRanges",
+      "descriptor": "()Z",
+      "line": 54,
+      "mutator": "org.pitest.mutationtest.engine.gregor.mutators.RemoveConditionalMutator_EQUAL_ELSE",
+      "indexes": [
+        50
+      ],
+      "reason": "The second complete scan compensates for removing the first scan match.",
+      "class": "net.mooctest.VerveValidator"
+    },
+    {
+      "method": "checkIINRanges",
+      "descriptor": "()Z",
+      "line": 60,
+      "mutator": "org.pitest.mutationtest.engine.gregor.mutators.RemoveConditionalMutator_EQUAL_ELSE",
+      "indexes": [
+        67
+      ],
+      "reason": "The second scan is redundant.",
+      "class": "net.mooctest.VerveValidator"
+    },
+    {
+      "method": "checkIINRanges",
+      "descriptor": "()Z",
+      "line": 62,
+      "mutator": "org.pitest.mutationtest.engine.gregor.mutators.RemoveConditionalMutator_EQUAL_ELSE",
+      "indexes": [
+        85
+      ],
+      "reason": "The removed match is unreachable.",
+      "class": "net.mooctest.VerveValidator"
+    },
+    {
+      "method": "checkIINRanges",
+      "descriptor": "()Z",
+      "line": 53,
+      "mutator": "org.pitest.mutationtest.engine.gregor.mutators.RemoveConditionalMutator_ORDER_ELSE",
+      "indexes": [
+        45
+      ],
+      "reason": "The second complete scan compensates for skipping the first scan.",
+      "class": "net.mooctest.VerveValidator"
+    },
+    {
+      "method": "checkIINRanges",
+      "descriptor": "()Z",
+      "line": 61,
+      "mutator": "org.pitest.mutationtest.engine.gregor.mutators.RemoveConditionalMutator_ORDER_ELSE",
+      "indexes": [
+        80
+      ],
+      "reason": "The removed second scan is redundant.",
+      "class": "net.mooctest.VerveValidator"
+    },
+    {
+      "method": "validate",
+      "descriptor": "()Z",
+      "line": 64,
+      "mutator": "org.pitest.mutationtest.engine.gregor.mutators.returns.BooleanTrueReturnValsMutator",
+      "indexes": [
+        29
+      ],
+      "reason": "False has already thrown; every normal return is true.",
+      "class": "net.mooctest.Validator"
+    }
+  ]
+}

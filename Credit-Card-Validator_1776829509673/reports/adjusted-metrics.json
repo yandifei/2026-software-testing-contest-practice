@@ -1,0 +1,34 @@
+{
+  "scope": "Adjusted metrics only; original JaCoCo and PIT reports are unchanged",
+  "raw": {
+    "branch_covered": 233,
+    "branch_total": 236,
+    "branch_percent": 98.73,
+    "mutations_killed": 263,
+    "mutation_total": 272,
+    "mutation_percent": 96.69,
+    "mutation_statuses": {
+      "KILLED": 263,
+      "SURVIVED": 9
+    }
+  },
+  "excluded": {
+    "unreachable_branches": 3,
+    "equivalent_mutations": 9
+  },
+  "adjusted": {
+    "branch_covered": 233,
+    "branch_total": 233,
+    "branch_percent": 100.0,
+    "mutations_killed": 263,
+    "mutation_total": 263,
+    "mutation_percent": 100.0
+  },
+  "passed": true,
+  "policy": "reports/adjustment-policy.json",
+  "input_sha256_lf": {
+    "reports/jacoco.xml": "4b2744eb9157193472ac640a830ce17940c4c4f9ade7a22e1328b9b3a9955b06",
+    "reports/mutations.xml": "ac2e714288b5b5d94a83b07099a94bd1c95bf5b25d03eac5c0b4cdfcf501fab8",
+    "reports/adjustment-policy.json": "5fd6decb7c272de540b26dca8ce4807341feebf52fb22af7a0670a883d3b99f0"
+  }
+}
