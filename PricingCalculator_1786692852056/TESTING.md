@@ -14,7 +14,7 @@
 通常运行：
 
 ```powershell
-mvn test org.pitest:pitest-maven:mutationCoverage
+mvn clean test org.pitest:pitest-maven:1.15.3:mutationCoverage
 ```
 
 Windows 自动激活 `windows-coverage-path`，将覆盖率数据写到系统临时目录，避免中文路径使 JaCoCo agent 启动失败。HTML/XML 报告仍输出到项目 `target`。`.mvn/jvm.config` 为 Maven 配置 UTF-8 控制台输出。
@@ -32,13 +32,32 @@ if ($LASTEXITCODE -ne 0) { throw '测试或指标门槛未通过' }
 也可以编辑现有 Maven 运行配置，将命令行改为：
 
 ```text
-test org.pitest:pitest-maven:1.15.3:mutationCoverage
+clean test org.pitest:pitest-maven:1.15.3:mutationCoverage
 ```
 
 `mutationCoverage` 执行变异测试并生成报告。`report` 只使用已有报告，用于 Maven site；执行 `clean` 后报告目录被删除，直接运行 `report` 会报 `could not find reports directory`。
 项目不需要先运行 `report`。生成后直接打开 `target/pit-reports/index.html`。
 
 模块附加配置曾把整个 `src` 标为生产源码目录，已修正为 `src/main/java`，`src/test/java` 保持测试目录。IDEA 的右键 JUnit 编译由 IDE 模块模型决定；本次直接验证的是共享配置中的 Maven 命令，不宣称已复测 IDE 内的右键运行。
+
+### 搬移目录后出现 No mutations found
+
+2026-10-26 复现：单独运行 `org.pitest:pitest-maven:1.15.3:mutationCoverage` 时，
+`target/classes` 没有 `.class` 文件，PIT 预扫描得到 0 个变异测试单元。
+PIT 的这个目标不会自动执行 Maven 的编译和测试生命周期；搬移目录、全新克隆或 `clean` 后尤其容易出现。
+
+在相同 IDEA Maven、事件监听插件和依赖仓库参数下，只在 PIT 目标前增加 `test` 即通过：
+JUnit 30 次全通过，JaCoCo 分支 3/3、行 60/60，PIT 25/25 全部 KILLED。
+这是构建顺序问题，不需要修改被测业务源码、过滤器或降低指标门槛。
+
+推荐使用上方共享配置，或从任意目录执行随项目保存的脚本（脚本会先进入项目目录）：
+
+```powershell
+pwsh -File ./PricingCalculator_1786692852056/scripts/verify.ps1 -Maven 'A:\IDEA\IntelliJ IDEA\plugins\maven-plugin\lib\maven3\bin\mvn.cmd'
+```
+
+该脚本固定运行 `clean test` 后再运行 PIT，并在任何构建失败时返回错误。
+编译完成后单独运行 PIT 可以成功，但不会保证源码更新已经编译，因此日常应使用完整命令。
 
 ## 测试范围
 
