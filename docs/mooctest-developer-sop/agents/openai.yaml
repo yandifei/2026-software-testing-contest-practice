@@ -1,0 +1,4 @@
+interface:
+  display_name: "慕测开发者测试 SOP"
+  short_description: "核对开发者赛事规则，完成 JUnit 测试验证、材料打包与浏览器提交"
+  default_prompt: "使用 $mooctest-developer-sop 处理当前工作区的开发者测试赛题，完成测试验证和材料准备。"
