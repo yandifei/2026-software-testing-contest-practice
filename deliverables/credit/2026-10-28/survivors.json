@@ -1,0 +1,65 @@
+[
+  {
+    "mutatedClass": "net.mooctest.LuhnValidator",
+    "mutatedMethod": "algorithmCheck",
+    "lineNumber": "76",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.MathMutator",
+    "description": "Replaced integer addition with subtraction"
+  },
+  {
+    "mutatedClass": "net.mooctest.VerveValidator",
+    "mutatedMethod": "checkIINRanges",
+    "lineNumber": "53",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.ConditionalsBoundaryMutator",
+    "description": "changed conditional boundary"
+  },
+  {
+    "mutatedClass": "net.mooctest.VerveValidator",
+    "mutatedMethod": "checkIINRanges",
+    "lineNumber": "61",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.ConditionalsBoundaryMutator",
+    "description": "changed conditional boundary"
+  },
+  {
+    "mutatedClass": "net.mooctest.VerveValidator",
+    "mutatedMethod": "checkIINRanges",
+    "lineNumber": "54",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.RemoveConditionalMutator_EQUAL_ELSE",
+    "description": "removed conditional - replaced equality check with false"
+  },
+  {
+    "mutatedClass": "net.mooctest.VerveValidator",
+    "mutatedMethod": "checkIINRanges",
+    "lineNumber": "60",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.RemoveConditionalMutator_EQUAL_ELSE",
+    "description": "removed conditional - replaced equality check with false"
+  },
+  {
+    "mutatedClass": "net.mooctest.VerveValidator",
+    "mutatedMethod": "checkIINRanges",
+    "lineNumber": "62",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.RemoveConditionalMutator_EQUAL_ELSE",
+    "description": "removed conditional - replaced equality check with false"
+  },
+  {
+    "mutatedClass": "net.mooctest.VerveValidator",
+    "mutatedMethod": "checkIINRanges",
+    "lineNumber": "53",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.RemoveConditionalMutator_ORDER_ELSE",
+    "description": "removed conditional - replaced comparison check with false"
+  },
+  {
+    "mutatedClass": "net.mooctest.VerveValidator",
+    "mutatedMethod": "checkIINRanges",
+    "lineNumber": "61",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.RemoveConditionalMutator_ORDER_ELSE",
+    "description": "removed conditional - replaced comparison check with false"
+  },
+  {
+    "mutatedClass": "net.mooctest.Validator",
+    "mutatedMethod": "validate",
+    "lineNumber": "64",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.returns.BooleanTrueReturnValsMutator",
+    "description": "replaced boolean return with true for net/mooctest/Validator::validate"
+  }
+]
