@@ -1,0 +1,52 @@
+{
+  "date": "2026-10-29",
+  "tests": {
+    "tests": 156,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  "jacoco": {
+    "INSTRUCTION": {
+      "missed": 4,
+      "covered": 1995
+    },
+    "BRANCH": {
+      "missed": 3,
+      "covered": 233
+    },
+    "LINE": {
+      "missed": 3,
+      "covered": 494
+    },
+    "COMPLEXITY": {
+      "missed": 3,
+      "covered": 213
+    },
+    "METHOD": {
+      "missed": 0,
+      "covered": 98
+    },
+    "CLASS": {
+      "missed": 0,
+      "covered": 32
+    }
+  },
+  "pit": {
+    "KILLED": 263,
+    "SURVIVED": 9
+  },
+  "protected_files": 33,
+  "source_pom_matches_official_archive": true,
+  "zip_entries": 199,
+  "files": {
+    "CreditCardValidatorTest.java": {
+      "bytes": 29993,
+      "sha256": "459a0faab01be4818c14a0f1affab620604c6631ba541caccaf3f47b4052625f"
+    },
+    "Credit-Card-Validator.zip": {
+      "bytes": 325268,
+      "sha256": "f8d7be12eb04b2dcd0d52d696956f3e57bb37b4fc3dc452083ea30bdb7012f86"
+    }
+  }
+}
