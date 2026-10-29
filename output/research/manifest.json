@@ -1,0 +1,53 @@
+{
+  "date": "2026-10-29",
+  "tests": {
+    "tests": 83,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  "jacoco": {
+    "INSTRUCTION": {
+      "missed": 3,
+      "covered": 2157
+    },
+    "BRANCH": {
+      "missed": 1,
+      "covered": 239
+    },
+    "LINE": {
+      "missed": 0,
+      "covered": 405
+    },
+    "COMPLEXITY": {
+      "missed": 1,
+      "covered": 248
+    },
+    "METHOD": {
+      "missed": 0,
+      "covered": 129
+    },
+    "CLASS": {
+      "missed": 0,
+      "covered": 20
+    }
+  },
+  "pit": {
+    "KILLED": 278,
+    "SURVIVED": 26,
+    "NO_COVERAGE": 1
+  },
+  "protected_files": 15,
+  "source_pom_matches_official_archive": true,
+  "zip_entries": 126,
+  "files": {
+    "BudgetTest.java": {
+      "bytes": 43844,
+      "sha256": "57cd6c14c9f45d0a4072629f11107c4377d4f270e0a3a3a429a9732d44a264fc"
+    },
+    "Research-Project-Management-System.zip": {
+      "bytes": 246351,
+      "sha256": "8da8d1f50d77fcc31fe526c8d00b0e7e0b6a684ece5e8c10703f9b5b115ea6ad"
+    }
+  }
+}
