@@ -1,0 +1,22 @@
+{
+  "date": "2026-10-31",
+  "target": "Both projects: original branch coverage and KILLED/all mutants equal 100%, source and POM unchanged",
+  "status": "NOT_MET",
+  "research": {
+    "branch": "240/240",
+    "mutation": "284/305",
+    "tests": 87,
+    "scope": "local white-box experiment"
+  },
+  "credit": {
+    "branch": "233/236",
+    "mutation": "263/272",
+    "tests": 156,
+    "scope": "unchanged tests; white-box feasibility re-audited"
+  },
+  "obstacle": "Original programs contain unreachable control-flow edges and behaviorally equivalent mutants; white-box field access does not remove those barriers. No report changes or denominator adjustments.",
+  "evidence": [
+    "research/whitebox-audit.md",
+    "credit/whitebox-feasibility.md"
+  ]
+}

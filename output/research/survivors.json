@@ -82,26 +82,6 @@
   {
     "detected": "false",
     "status": "SURVIVED",
-    "numberOfTestsRun": "5",
-    "sourceFile": "Researcher.java",
-    "mutatedClass": "net.mooctest.Researcher",
-    "mutatedMethod": "assignTask",
-    "methodDescription": "(Lnet/mooctest/Task;)Z",
-    "lineNumber": "71",
-    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.MathMutator",
-    "indexes": [
-      "16"
-    ],
-    "blocks": [
-      "3"
-    ],
-    "killingTest": null,
-    "description": "Replaced integer addition with subtraction",
-    "id": "9cf6929b4fbc310e171e46a28d5970bfd39d95ada94fd93ff59cf969ccc6f327"
-  },
-  {
-    "detected": "false",
-    "status": "SURVIVED",
     "numberOfTestsRun": "3",
     "sourceFile": "Researcher.java",
     "mutatedClass": "net.mooctest.Researcher",
@@ -382,27 +362,7 @@
   {
     "detected": "false",
     "status": "SURVIVED",
-    "numberOfTestsRun": "8",
-    "sourceFile": "Budget.java",
-    "mutatedClass": "net.mooctest.Budget",
-    "mutatedMethod": "setReserveRatio",
-    "methodDescription": "(D)V",
-    "lineNumber": "66",
-    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.ConditionalsBoundaryMutator",
-    "indexes": [
-      "6"
-    ],
-    "blocks": [
-      "0"
-    ],
-    "killingTest": null,
-    "description": "changed conditional boundary",
-    "id": "c7103de51ac28ec14fb1254d1ceff631971ba4b8775591e8a19d39bea803f66c"
-  },
-  {
-    "detected": "false",
-    "status": "SURVIVED",
-    "numberOfTestsRun": "8",
+    "numberOfTestsRun": "9",
     "sourceFile": "Budget.java",
     "mutatedClass": "net.mooctest.Budget",
     "mutatedMethod": "setReserveRatio",
@@ -442,7 +402,7 @@
   {
     "detected": "false",
     "status": "SURVIVED",
-    "numberOfTestsRun": "36",
+    "numberOfTestsRun": "38",
     "sourceFile": "IdGenerator.java",
     "mutatedClass": "net.mooctest.IdGenerator",
     "mutatedMethod": "nextId",
@@ -458,65 +418,5 @@
     "killingTest": null,
     "description": "changed conditional boundary",
     "id": "84e3a43b865bc6d466c2ef32ee66423a893b7dff803b2d104e149c5094c2e776"
-  },
-  {
-    "detected": "false",
-    "status": "NO_COVERAGE",
-    "numberOfTestsRun": "0",
-    "sourceFile": "IdGenerator.java",
-    "mutatedClass": "net.mooctest.IdGenerator",
-    "mutatedMethod": "nextId",
-    "methodDescription": "()J",
-    "lineNumber": "14",
-    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.InvertNegsMutator",
-    "indexes": [
-      "25"
-    ],
-    "blocks": [
-      "3"
-    ],
-    "killingTest": null,
-    "description": "removed negation",
-    "id": "72ae1fa4017f4ec801d6bab9466b4f5237445ef91347eaff4f8d9619b02c301f"
-  },
-  {
-    "detected": "false",
-    "status": "SURVIVED",
-    "numberOfTestsRun": "36",
-    "sourceFile": "IdGenerator.java",
-    "mutatedClass": "net.mooctest.IdGenerator",
-    "mutatedMethod": "nextId",
-    "methodDescription": "()J",
-    "lineNumber": "13",
-    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.MathMutator",
-    "indexes": [
-      "14"
-    ],
-    "blocks": [
-      "2"
-    ],
-    "killingTest": null,
-    "description": "Replaced Shift Left with Shift Right",
-    "id": "0f3f5778cd9d60a0d3322ce27eda5d7f321125893eabecfc12dc95c69fb45077"
-  },
-  {
-    "detected": "false",
-    "status": "SURVIVED",
-    "numberOfTestsRun": "36",
-    "sourceFile": "IdGenerator.java",
-    "mutatedClass": "net.mooctest.IdGenerator",
-    "mutatedMethod": "nextId",
-    "methodDescription": "()J",
-    "lineNumber": "14",
-    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.RemoveConditionalMutator_ORDER_ELSE",
-    "indexes": [
-      "23"
-    ],
-    "blocks": [
-      "2"
-    ],
-    "killingTest": null,
-    "description": "removed conditional - replaced comparison check with false",
-    "id": "3107b6ad397705aa7d6a456c171d7ee888e3f6f2db23649d8cf593ee88ec8996"
   }
 ]

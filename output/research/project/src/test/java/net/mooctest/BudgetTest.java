@@ -1,6 +1,8 @@
 package net.mooctest;
 
 import java.time.LocalDateTime;
+import java.lang.reflect.Field;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -20,7 +22,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  * Single-file regression suite for the Research Project Management System.
  * Normal, boundary and error paths are grouped by domain below.
  * Tests named characterizes document current behavior and known business risks.
- * Tests use public behavior; private fields and constructors are not accessed reflectively.
+ * Local white-box research: selected private state is observed or controlled with restoration.
  */
 public class BudgetTest {
     // BudgetBoundary scenarios
@@ -976,5 +978,73 @@ public class BudgetTest {
         assertEquals(Double.POSITIVE_INFINITY, budget.requiredReserve());
         budget.setReserveRatio(0.0);
         assertTrue(Double.isNaN(budget.requiredReserve()));
+    }
+
+    @Test
+    void idGenerator_controlledCounterCoversBothSignsAndPreservesTimestampBits() throws Exception {
+        // Local white-box experiment: restore shared state even when an assertion fails.
+        Field field = IdGenerator.class.getDeclaredField("COUNTER");
+        field.setAccessible(true);
+        AtomicLong counter = (AtomicLong) field.get(null);
+        long saved = counter.get();
+        try {
+            for (long seed : new long[] {0, Long.MIN_VALUE}) {
+                counter.set(seed);
+                long before = System.currentTimeMillis();
+                long actual = IdGenerator.nextId();
+                long after = System.currentTimeMillis();
+                long incremented = seed + 1;
+                assertEquals(incremented, counter.get());
+                assertTrue(actual > 0);
+                // Decode the documented bit composition instead of cloning its calculation.
+                // Absolute value can hide either sign; one sign must decode a captured timestamp.
+                assertTrue(idGenerator_decodesCapturedTime(actual, incremented, before, after)
+                        || idGenerator_decodesCapturedTime(-actual, incremented, before, after),
+                        "ID must contain the captured timestamp above the lower twenty bits");
+            }
+        } finally {
+            counter.set(saved);
+        }
+    }
+
+    private static boolean idGenerator_decodesCapturedTime(long signedId, long counter,
+            long before, long after) {
+        long timestampBits = signedId ^ counter;
+        long lowerTwentyBits = (1L << 20) - 1;
+        long decodedTime = timestampBits >>> 20;
+        return (timestampBits & lowerTwentyBits) == 0
+                && decodedTime >= before && decodedTime <= after;
+    }
+    @Test
+    void mutationBoundary_successfulAssignmentsIncrementInternalCountAndRejectedOnesDoNot() throws Exception {
+        // There is no public counter accessor; observe the state without changing it.
+        Field count = Researcher.class.getDeclaredField("assignedCount");
+        count.setAccessible(true);
+        Researcher researcher = new Researcher("r", 5);
+        Task task = new Task("two hours", 2, null);
+        assertEquals(0, count.getInt(researcher));
+        assertTrue(researcher.assignTask(task));
+        assertEquals(1, count.getInt(researcher));
+        assertTrue(researcher.assignTask(task));
+        assertEquals(2, count.getInt(researcher));
+        assertFalse(researcher.assignTask(task));
+        assertFalse(researcher.assignTask(null));
+        assertEquals(2, count.getInt(researcher));
+        assertEquals(1, researcher.getCapacity());
+    }
+
+    @Test
+    void mutationBoundary_reserveRatioStoresClampedValueEvenWhenMinimumReserveMasksIt() throws Exception {
+        Field ratio = Budget.class.getDeclaredField("reserveRatio");
+        ratio.setAccessible(true);
+        Budget budget = new Budget();
+        budget.setReserveRatio(-0.25);
+        assertEquals(0.0, ratio.getDouble(budget));
+        budget.setReserveRatio(-0.0);
+        mutationBoundary_assertNegativeZero(ratio.getDouble(budget));
+        budget.setReserveRatio(0.25);
+        assertEquals(0.25, ratio.getDouble(budget));
+        budget.setReserveRatio(0.75);
+        assertEquals(0.5, ratio.getDouble(budget));
     }
 }

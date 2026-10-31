@@ -1,30 +1,30 @@
 {
   "date": "2026-10-31",
   "timezone": "Asia/Shanghai",
-  "run_finished_at": "2026-10-31T14:35:27+08:00",
-  "test_source_sha256": "90b88e45768d3b68cd852b715218d5f447705345ec541b107f01631bb83d6dd5",
+  "run_finished_at": "2026-10-31T22:58:15+08:00",
+  "test_source_sha256": "6d92ef1799fbe96a085904bda26937630db4921dbbea523c181c7afff94cdb07",
   "tests": {
-    "tests": 84,
+    "tests": 87,
     "failures": 0,
     "errors": 0,
     "skipped": 0
   },
   "jacoco": {
     "INSTRUCTION": {
-      "missed": 3,
-      "covered": 2157
+      "missed": 0,
+      "covered": 2160
     },
     "BRANCH": {
-      "missed": 1,
-      "covered": 239
+      "missed": 0,
+      "covered": 240
     },
     "LINE": {
       "missed": 0,
       "covered": 405
     },
     "COMPLEXITY": {
-      "missed": 1,
-      "covered": 248
+      "missed": 0,
+      "covered": 249
     },
     "METHOD": {
       "missed": 0,
@@ -36,32 +36,31 @@
     }
   },
   "pit": {
-    "KILLED": 279,
-    "SURVIVED": 25,
-    "NO_COVERAGE": 1
+    "KILLED": 284,
+    "SURVIVED": 21
   },
   "protected_files": 15,
   "source_pom_matches_saved_baseline": true,
   "baseline_sha256": "ca64db5c6981b39f77e83d5b539ede98d41aa09055cdaa06d133779d2c4987d7",
   "freshness_checks": "source/test/class/report mtimes and complete Maven log summaries; not a cryptographic build attestation",
   "verification_log": {
-    "file": "verification-2026-10-31.log",
-    "sha256": "ba1301d7acdde8ef5869df666fdbe892d0b0581909e3237c89fe640a260dc4c2"
+    "file": "verification-whitebox-2026-10-31.log",
+    "sha256": "9e094569de032b6d5c35bff503fb9fc67354ce61f3f8f338ac44750cb505c8cc"
   },
   "reports": {
-    "target/surefire-reports/TEST-net.mooctest.BudgetTest.xml": "511ac5fa354c9613bdb0e7dc0e449a6d1743f02be5d8ad4e5d6ef898d7ec21c6",
-    "target/site/jacoco/jacoco.xml": "a1f1c7f0ba3edcf7cd1d1c1f47d1a92f097013a7c8a9e4617468819f132ecef3",
-    "target/pit-reports/mutations.xml": "7e90791ea30bbc2140a02765ba46879bc66fe73121e74f0b5d25ef719bff3110"
+    "target/surefire-reports/TEST-net.mooctest.BudgetTest.xml": "7922eb44790858385fa0d1fce9b7e5444ca31a582d2fb63c24a379ccedad4230",
+    "target/site/jacoco/jacoco.xml": "67fa0793696667d7523c7a8c788fbd055f8017e20fda0ba4d6b70df594cd5009",
+    "target/pit-reports/mutations.xml": "d4390ac4a1906502db6aeb7ee11852cfaf4a5554cf06077c465612c64b5f60ab"
   },
   "zip_entries": 126,
   "files": {
     "BudgetTest.java": {
-      "bytes": 44779,
-      "sha256": "90b88e45768d3b68cd852b715218d5f447705345ec541b107f01631bb83d6dd5"
+      "bytes": 48243,
+      "sha256": "6d92ef1799fbe96a085904bda26937630db4921dbbea523c181c7afff94cdb07"
     },
     "Research-Project-Management-System.zip": {
-      "bytes": 246863,
-      "sha256": "9a809af659fe85f38b03513a94c5b637b59461ffb59db8087e37f0fae75db5ae"
+      "bytes": 249165,
+      "sha256": "5e9798bba6974d74d698b0364955ab650ac27080988b8b29f46e79889093e3f5"
     }
   }
 }

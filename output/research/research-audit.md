@@ -1,3 +1,5 @@
+> 这是本日较早的公开接口版本（279/305）。最新本地白盒版本见 whitebox-audit.md、README.md 和 manifest.json：分支 240/240，KILLED 284/305。
+
 # Research：2026-10-31 缺口复核与真实改进
 
 ## 本轮结果
