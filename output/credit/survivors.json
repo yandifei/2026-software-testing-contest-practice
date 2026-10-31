@@ -1,119 +1,182 @@
 [
   {
+    "detected": "false",
     "status": "SURVIVED",
+    "numberOfTestsRun": "42",
     "sourceFile": "LuhnValidator.java",
     "mutatedClass": "net.mooctest.LuhnValidator",
     "mutatedMethod": "algorithmCheck",
     "methodDescription": "(Ljava/lang/String;)Z",
     "lineNumber": "76",
     "mutator": "org.pitest.mutationtest.engine.gregor.mutators.MathMutator",
-    "indexes": null,
-    "blocks": null,
+    "indexes": [
+      "120"
+    ],
+    "blocks": [
+      "19"
+    ],
     "killingTest": null,
-    "description": "Replaced integer addition with subtraction"
+    "description": "Replaced integer addition with subtraction",
+    "id": "13f4eddc87d720e565f85043bcf09742c030c25426143232ecdc01b859a6c295"
   },
   {
+    "detected": "false",
     "status": "SURVIVED",
+    "numberOfTestsRun": "2",
     "sourceFile": "VerveValidator.java",
     "mutatedClass": "net.mooctest.VerveValidator",
     "mutatedMethod": "checkIINRanges",
     "methodDescription": "()Z",
     "lineNumber": "53",
     "mutator": "org.pitest.mutationtest.engine.gregor.mutators.ConditionalsBoundaryMutator",
-    "indexes": null,
-    "blocks": null,
+    "indexes": [
+      "45"
+    ],
+    "blocks": [
+      "2"
+    ],
     "killingTest": null,
-    "description": "changed conditional boundary"
+    "description": "changed conditional boundary",
+    "id": "1e7f22fac80d1b2aeacb35e60e87b944805f84cc7a9d724e8ace3b7490433eb1"
   },
   {
+    "detected": "false",
     "status": "SURVIVED",
+    "numberOfTestsRun": "2",
     "sourceFile": "VerveValidator.java",
     "mutatedClass": "net.mooctest.VerveValidator",
     "mutatedMethod": "checkIINRanges",
     "methodDescription": "()Z",
     "lineNumber": "61",
     "mutator": "org.pitest.mutationtest.engine.gregor.mutators.ConditionalsBoundaryMutator",
-    "indexes": null,
-    "blocks": null,
+    "indexes": [
+      "80"
+    ],
+    "blocks": [
+      "8"
+    ],
     "killingTest": null,
-    "description": "changed conditional boundary"
+    "description": "changed conditional boundary",
+    "id": "114c630be488417ac1669d7a6c3dcc6e6991ab1378ebfd98b5370c641bd2dfd1"
   },
   {
+    "detected": "false",
     "status": "SURVIVED",
+    "numberOfTestsRun": "2",
     "sourceFile": "VerveValidator.java",
     "mutatedClass": "net.mooctest.VerveValidator",
     "mutatedMethod": "checkIINRanges",
     "methodDescription": "()Z",
     "lineNumber": "54",
     "mutator": "org.pitest.mutationtest.engine.gregor.mutators.RemoveConditionalMutator_EQUAL_ELSE",
-    "indexes": null,
-    "blocks": null,
+    "indexes": [
+      "50"
+    ],
+    "blocks": [
+      "3"
+    ],
     "killingTest": null,
-    "description": "removed conditional - replaced equality check with false"
+    "description": "removed conditional - replaced equality check with false",
+    "id": "578b69cb5f77f73dc4b5498859658aaed5860ec2e3ee0e1571a6f2e815a2454b"
   },
   {
+    "detected": "false",
     "status": "SURVIVED",
+    "numberOfTestsRun": "2",
     "sourceFile": "VerveValidator.java",
     "mutatedClass": "net.mooctest.VerveValidator",
     "mutatedMethod": "checkIINRanges",
     "methodDescription": "()Z",
     "lineNumber": "60",
     "mutator": "org.pitest.mutationtest.engine.gregor.mutators.RemoveConditionalMutator_EQUAL_ELSE",
-    "indexes": null,
-    "blocks": null,
+    "indexes": [
+      "67"
+    ],
+    "blocks": [
+      "6"
+    ],
     "killingTest": null,
-    "description": "removed conditional - replaced equality check with false"
+    "description": "removed conditional - replaced equality check with false",
+    "id": "346ce6958cece5c4df71dd373f74bcc8e374e13c5149b82efd20486a2b85e158"
   },
   {
+    "detected": "false",
     "status": "SURVIVED",
+    "numberOfTestsRun": "2",
     "sourceFile": "VerveValidator.java",
     "mutatedClass": "net.mooctest.VerveValidator",
     "mutatedMethod": "checkIINRanges",
     "methodDescription": "()Z",
     "lineNumber": "62",
     "mutator": "org.pitest.mutationtest.engine.gregor.mutators.RemoveConditionalMutator_EQUAL_ELSE",
-    "indexes": null,
-    "blocks": null,
+    "indexes": [
+      "85"
+    ],
+    "blocks": [
+      "9"
+    ],
     "killingTest": null,
-    "description": "removed conditional - replaced equality check with false"
+    "description": "removed conditional - replaced equality check with false",
+    "id": "2c4e6bc17fc26d06609ad394e221c55923a8e0bc296e5dd618ccdd17cc950ab4"
   },
   {
+    "detected": "false",
     "status": "SURVIVED",
+    "numberOfTestsRun": "2",
     "sourceFile": "VerveValidator.java",
     "mutatedClass": "net.mooctest.VerveValidator",
     "mutatedMethod": "checkIINRanges",
     "methodDescription": "()Z",
     "lineNumber": "53",
     "mutator": "org.pitest.mutationtest.engine.gregor.mutators.RemoveConditionalMutator_ORDER_ELSE",
-    "indexes": null,
-    "blocks": null,
+    "indexes": [
+      "45"
+    ],
+    "blocks": [
+      "2"
+    ],
     "killingTest": null,
-    "description": "removed conditional - replaced comparison check with false"
+    "description": "removed conditional - replaced comparison check with false",
+    "id": "05f0a80bfcab67bfdf446b8de35ed2f1ccf874dcf46e5bdf6588ffe45911dcb7"
   },
   {
+    "detected": "false",
     "status": "SURVIVED",
+    "numberOfTestsRun": "2",
     "sourceFile": "VerveValidator.java",
     "mutatedClass": "net.mooctest.VerveValidator",
     "mutatedMethod": "checkIINRanges",
     "methodDescription": "()Z",
     "lineNumber": "61",
     "mutator": "org.pitest.mutationtest.engine.gregor.mutators.RemoveConditionalMutator_ORDER_ELSE",
-    "indexes": null,
-    "blocks": null,
+    "indexes": [
+      "80"
+    ],
+    "blocks": [
+      "8"
+    ],
     "killingTest": null,
-    "description": "removed conditional - replaced comparison check with false"
+    "description": "removed conditional - replaced comparison check with false",
+    "id": "0dfb37e37273cc3a2a0136480bb12aa017843774b24e328725066f6244226877"
   },
   {
+    "detected": "false",
     "status": "SURVIVED",
+    "numberOfTestsRun": "7",
     "sourceFile": "Validator.java",
     "mutatedClass": "net.mooctest.Validator",
     "mutatedMethod": "validate",
     "methodDescription": "()Z",
     "lineNumber": "64",
     "mutator": "org.pitest.mutationtest.engine.gregor.mutators.returns.BooleanTrueReturnValsMutator",
-    "indexes": null,
-    "blocks": null,
+    "indexes": [
+      "29"
+    ],
+    "blocks": [
+      "5"
+    ],
     "killingTest": null,
-    "description": "replaced boolean return with true for net/mooctest/Validator::validate"
+    "description": "replaced boolean return with true for net/mooctest/Validator::validate",
+    "id": "1e4c17e61afbec6f5fa230b5792813597707425a5affc36614add4364ad9f84f"
   }
 ]

@@ -1,5 +1,8 @@
 {
-  "date": "2026-10-29",
+  "date": "2026-10-31",
+  "timezone": "Asia/Shanghai",
+  "run_finished_at": "2026-10-31T14:46:02+08:00",
+  "test_source_sha256": "459a0faab01be4818c14a0f1affab620604c6631ba541caccaf3f47b4052625f",
   "tests": {
     "tests": 156,
     "failures": 0,
@@ -37,7 +40,18 @@
     "SURVIVED": 9
   },
   "protected_files": 33,
-  "source_pom_matches_official_archive": true,
+  "source_pom_matches_saved_baseline": true,
+  "baseline_sha256": "bf2732dcf6ff4e6766e88bd2e6d8197af4868829933e08a41d3f41010da60bac",
+  "freshness_checks": "source/test/class/report mtimes and complete Maven log summaries; not a cryptographic build attestation",
+  "verification_log": {
+    "file": "verification-2026-10-31.log",
+    "sha256": "ac3873debee98e0b848deb6af6cfab6616ed75d30b2f54d948f2536a04b69a11"
+  },
+  "reports": {
+    "target/surefire-reports/TEST-net.mooctest.CreditCardValidatorTest.xml": "b30d2de0991b209ed8d0dd53d1f3d634716db937b40e36bdfab31d8dac9126b9",
+    "target/site/jacoco/jacoco.xml": "92b4f8583b77874630a78d598eb32371ab8649e7ee9e6fd60295c49132dd740e",
+    "target/pit-reports/mutations.xml": "c44449d873bfd372ee69287c6690b75ca77edd1d237b0f96086468e3650a41e8"
+  },
   "zip_entries": 199,
   "files": {
     "CreditCardValidatorTest.java": {
@@ -45,8 +59,8 @@
       "sha256": "459a0faab01be4818c14a0f1affab620604c6631ba541caccaf3f47b4052625f"
     },
     "Credit-Card-Validator.zip": {
-      "bytes": 325268,
-      "sha256": "f8d7be12eb04b2dcd0d52d696956f3e57bb37b4fc3dc452083ea30bdb7012f86"
+      "bytes": 325250,
+      "sha256": "1ae8a5d6ad5d01c3a61df5b39f054c8f204986ba5d9138a34d8bb167a7170024"
     }
   }
 }
