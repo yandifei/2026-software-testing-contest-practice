@@ -1,18 +1,18 @@
 # Research-Project-Management-System verification and delivery
 
-Verified 2026-10-29 (Asia/Shanghai). Source: https://www.mooctest.net/student/contest/10
-2026 developer individual registration practice; deadline 2026-10-30 20:00.
-Java <= 2 MB, project ZIP <= 20 MB. ZIP includes fresh target reports.
+Delivery verified 2026-10-31 (Asia/Shanghai). Maven run finished: 2026-10-31T14:35:27+08:00.
+Original contest context: https://www.mooctest.net/student/contest/10
+This is a local verification/package result, not evidence of platform submission or current contest availability.
 
-- JUnit: {'tests': 83, 'failures': 0, 'errors': 0, 'skipped': 0}.
+- JUnit: {'tests': 84, 'failures': 0, 'errors': 0, 'skipped': 0}.
 - JaCoCo branches: 239/240 (99.58%).
 - JaCoCo lines: 405/405.
-- PIT DEFAULTS KILLED: 278/305 (91.15%); statuses: {'KILLED': 278, 'SURVIVED': 26, 'NO_COVERAGE': 1}.
-- Source/POM: all 15 protected files match official original ZIP, before and after execution.
-- One UTF-8 test file; standalone file and ZIP contents verified byte for byte. Sizes and SHA-256 in manifest.json.
-- Java 21.0.9 / Maven 3.9.11 / original POM / JUnit 5.10.2.
-- Command: mvn clean test org.pitest:pitest-maven:mutationCoverage -DargLine=-javaagent:<local JaCoCo 0.8.11 runtime>=destfile=target/jacoco.exec -DoutputFormats=HTML,XML
-- Relative JaCoCo destination avoids the documented non-ASCII absolute-path issue. No change to targets or mutators.
+- PIT raw KILLED: 279/305 (91.48%); statuses: {'KILLED': 279, 'SURVIVED': 25, 'NO_COVERAGE': 1}.
+- Source/POM: all 15 protected files match the saved original-source baseline. Archive provenance is recorded in input-record.json.
+- One UTF-8 test file; standalone test and every ZIP entry checked byte for byte. SHA-256 and sizes are in manifest.json.
+- Java < 2 MB, complete project ZIP < 20 MB; ZIP retains target and the complete generated report directories.
+- Freshness checks: source/test/class/report modification order, successful Maven log, matching JUnit and PIT totals. These checks do not replace a cryptographic build attestation.
+- Verification log: verification-2026-10-31.log; report and test hashes are recorded in manifest.json. Exact JVM/plugin configuration remains in the unchanged POM and execution log.
 - Reports: project/target/site/jacoco/index.html and project/target/pit-reports/index.html, also included in ZIP.
-- Existing single-file test assets reviewed and reused; all reported results are from this fresh run. No new platform submission performed.
-- Local metrics are not platform scores. AI/reflection permissions were not explicitly stated on the page.
+- survivors.json preserves class, method descriptor, mutator, bytecode indexes and blocks for each non-KILLED mutation; no denominator adjustment.
+- Local metrics are not platform scores. See analysis files for remaining gaps and observed limitations.

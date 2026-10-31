@@ -960,4 +960,21 @@ public class BudgetTest {
         riskBehavior_assertResult(analyzer.simulate(
                 List.of(new Risk("never", "c", 0, 1)), 1), 0, 0, 0);
     }
+
+    @Test
+    void budgetReserve_characterizesFiniteCostOverflowAndNegativeRatioClamping() {
+        // Both inputs are finite and accepted by the public API. Their sum overflows.
+        // Clamping a negative ratio to zero yields Infinity * 0 = NaN;
+        // skipping that clamp yields negative infinity, then the 1000 floor.
+        Budget budget = new Budget();
+        budget.add(new Budget.Item("large equipment", Double.MAX_VALUE, 1, "lab"));
+        budget.add(new Budget.Item("large facility", Double.MAX_VALUE, 1, "lab"));
+        assertEquals(Double.POSITIVE_INFINITY, budget.totalCost());
+        budget.setReserveRatio(-0.25);
+        assertTrue(Double.isNaN(budget.requiredReserve()));
+        budget.setReserveRatio(0.25);
+        assertEquals(Double.POSITIVE_INFINITY, budget.requiredReserve());
+        budget.setReserveRatio(0.0);
+        assertTrue(Double.isNaN(budget.requiredReserve()));
+    }
 }

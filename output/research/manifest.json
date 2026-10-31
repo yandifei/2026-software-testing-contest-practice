@@ -1,7 +1,10 @@
 {
-  "date": "2026-10-29",
+  "date": "2026-10-31",
+  "timezone": "Asia/Shanghai",
+  "run_finished_at": "2026-10-31T14:35:27+08:00",
+  "test_source_sha256": "90b88e45768d3b68cd852b715218d5f447705345ec541b107f01631bb83d6dd5",
   "tests": {
-    "tests": 83,
+    "tests": 84,
     "failures": 0,
     "errors": 0,
     "skipped": 0
@@ -33,21 +36,32 @@
     }
   },
   "pit": {
-    "KILLED": 278,
-    "SURVIVED": 26,
+    "KILLED": 279,
+    "SURVIVED": 25,
     "NO_COVERAGE": 1
   },
   "protected_files": 15,
-  "source_pom_matches_official_archive": true,
+  "source_pom_matches_saved_baseline": true,
+  "baseline_sha256": "ca64db5c6981b39f77e83d5b539ede98d41aa09055cdaa06d133779d2c4987d7",
+  "freshness_checks": "source/test/class/report mtimes and complete Maven log summaries; not a cryptographic build attestation",
+  "verification_log": {
+    "file": "verification-2026-10-31.log",
+    "sha256": "ba1301d7acdde8ef5869df666fdbe892d0b0581909e3237c89fe640a260dc4c2"
+  },
+  "reports": {
+    "target/surefire-reports/TEST-net.mooctest.BudgetTest.xml": "511ac5fa354c9613bdb0e7dc0e449a6d1743f02be5d8ad4e5d6ef898d7ec21c6",
+    "target/site/jacoco/jacoco.xml": "a1f1c7f0ba3edcf7cd1d1c1f47d1a92f097013a7c8a9e4617468819f132ecef3",
+    "target/pit-reports/mutations.xml": "7e90791ea30bbc2140a02765ba46879bc66fe73121e74f0b5d25ef719bff3110"
+  },
   "zip_entries": 126,
   "files": {
     "BudgetTest.java": {
-      "bytes": 43844,
-      "sha256": "57cd6c14c9f45d0a4072629f11107c4377d4f270e0a3a3a429a9732d44a264fc"
+      "bytes": 44779,
+      "sha256": "90b88e45768d3b68cd852b715218d5f447705345ec541b107f01631bb83d6dd5"
     },
     "Research-Project-Management-System.zip": {
-      "bytes": 246351,
-      "sha256": "8da8d1f50d77fcc31fe526c8d00b0e7e0b6a684ece5e8c10703f9b5b115ea6ad"
+      "bytes": 246863,
+      "sha256": "9a809af659fe85f38b03513a94c5b637b59461ffb59db8087e37f0fae75db5ae"
     }
   }
 }
