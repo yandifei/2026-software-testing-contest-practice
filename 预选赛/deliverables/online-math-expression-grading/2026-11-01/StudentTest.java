@@ -3130,6 +3130,23 @@ class StudentTest {
                     new ArrayList<String>());
             assertBigDecimalEquals("0.00", zeroed);
 
+            // scoreAnswer: a programming answer whose passed count exceeds its test count
+            // produces 2x maximum and is clamped back to maximum
+            AnswerResult overCredit = ans(QuestionType.PROGRAMMING, "S1", "10", false, true, false,
+                    0, 0, 0, null, null, 0, 4, 2, true, false, false, false);
+            BigDecimal clampedScore = (BigDecimal) scoreAnswer.invoke(service, overCredit,
+                    pol(), new ArrayList<String>());
+            assertBigDecimalEquals("10.00", clampedScore);
+
+            // scoreAnswer: numeric error exactly at the 10x-tolerance band with negative marking
+            // still resolves through partial credit to zero
+            AnswerResult exactBand = ans(QuestionType.NUMERIC, "S1", "10", false, true, false,
+                    0, 0, 0, "10", "1", 0, 0, 0, false, false, false, false);
+            BigDecimal band = (BigDecimal) scoreAnswer.invoke(service, exactBand,
+                    pol(60, true, true, "0.50", "0.00", 10, 50, 0, true, false, 3, false, false, true),
+                    new ArrayList<String>());
+            assertBigDecimalEquals("0.00", band);
+
             // calculateSections: a section whose accumulated maximum is zero yields zero percent
             Method calculateSections = ExamGradingService.class.getDeclaredMethod("calculateSections",
                     Map.class, Map.class, ExamSubmission.class, GradingPolicy.class, List.class);
