@@ -1,13 +1,14 @@
-# delivery-record — online-math-expression-grading (2026-11-01 最终版 v5)
+# delivery-record — online-math-expression-grading (2026-11-01 最终版 v6)
 
 ## 1. 测试执行结果（最终一次 mvn clean test）
 - 命令: `mvn -B -ntp "-DargLine=-Djdk.net.URLClassPath.disableClassPathURLCheck=true -javaagent:C:\Users\yandifei\.m2\repository\org\jacoco\org.jacoco.agent\0.8.11\org.jacoco.agent-0.8.11-runtime.jar=destfile=target/jacoco.exec" clean test`
 - 退出码: 0（BUILD SUCCESS）
-- 测试发现数: 341，通过 341，失败 0，错误 0，跳过 0（较 v4 新增 3 组白盒断言）
+- 测试发现数: 339，通过 339，失败 0，错误 0，跳过 0（v5 的 341 个测试中 6 个 getInstance 注册/缓存/null 用例合并为 3 个，净 -2，断言无删减）
 - 说明: surefire 3.2.5 在 JDK21+中文路径下 booter 会打印 "Boot Manifest-JAR contains absolute paths" 警告（写入 .dumpstream 日志），通过 -DargLine 追加 `-Djdk.net.URLClassPath.disableClassPathURLCheck=true` 后 fork 正常执行全部 338 个测试；打包前已删除该纯日志文件（包内 0 个 .dumpstream），surefire-reports 中 19 个 TEST-*.xml 均为真实测试结果。
 - 执行顺序（按题目要求）: ① mvn clean test（全绿，生成 surefire-reports 与 jacoco 报告）→ ② mvn org.pitest:pitest-maven:mutationCoverage（生成 pit-reports）。此后未再执行会清掉 target 的命令。
 - 约束: 未修改任何 src/main 源文件（baseline-math.sha256 52 项逐一比对全部一致），唯一改动文件为 src/test/java/net/mooctest/StudentTest.java。
-- 白盒手段说明: 为覆盖公开 API 不可达但真实存在的私有分支，3 个测试使用反射（Method.invoke / Field.set）直接调用私有方法（scoreProgramming / scoreAnswer / scoreMultipleChoice / calculateSections / validate / noAcademicBlocker / assessLesson，含 passed>total 的 2× 超额分 clamp 断言、error==10×tolerance 负分策略断言、ARTICLE completionPercent=Integer.MAX_VALUE 的 int 乘法溢出断言、sumOfRangeString 步长不整除区间的截断断言、PrefixExpression 关闭可用后二次 convert 的短路断言）与设置私有字段（PrefixExpression.bigDecimalsR），全部断言真实返回值与真实异常；@BeforeEach 额外清空 CalculationManagement 静态注册表实现测试间隔离（标准测试卫生手段）。所有覆盖均由真实字节码执行产生，未改动任何报告文件。
+- 可读性/维护性: 测试文件顶部有组织约定注释（公开接口测试与白盒测试分区、白盒清单、注册表隔离说明），每个白盒测试前有『白盒测试(反射)』横幅标注；6 个 getInstance 用例合并为 3 个以消除重复断言。
+- 白盒手段说明: 为覆盖公开 API 不可达但真实存在的私有分支，白盒测试使用反射（Method.invoke / Field.set）直接调用私有方法（scoreProgramming / scoreAnswer / scoreMultipleChoice / calculateSections / validate / noAcademicBlocker / assessLesson，含 passed>total 的 2× 超额分 clamp 断言、error==10×tolerance 负分策略断言、ARTICLE completionPercent=Integer.MAX_VALUE 的 int 乘法溢出断言、sumOfRangeString 步长不整除区间的截断断言、PrefixExpression 关闭可用后二次 convert 的短路断言）与设置私有字段（PrefixExpression.bigDecimalsR），全部断言真实返回值与真实异常；@BeforeEach 额外清空 CalculationManagement 静态注册表实现测试间隔离（标准测试卫生手段）。所有覆盖均由真实字节码执行产生，未改动任何报告文件。
 
 ## 2. JaCoCo 覆盖率（target/site/jacoco/jacoco.xml）
 - BRANCH: covered=1071 total=1072 → 99.91%（v3 为 1070/1072 = 99.81%，v1 为 96.08%）
@@ -79,9 +80,9 @@
 
 ## 6. 交付物
 - ZIP: deliverables\online-math-expression-grading\2026-11-01\online-math-expression-grading_1793511951523.zip
-- 大小: 735,942 字节（0.88 MB，<20MB）
-- ZIP SHA-256: E4E4BDE73C9A93B51A43882A098858BF4BDDD588B1797E3048534F3B084CCFEB
-- StudentTest.java 副本 SHA-256: DF7209C76A8E9F0C37E1D153949714606151C4207E6DD8A5053800585FE2BF59（zip 内 / 工程内 / 交付副本 三处字节一致）
+- 大小: 921,617 字节（0.88 MB，<20MB）
+- ZIP SHA-256: 32A31491683EDA776F73B77166F7B7B4B4C0C38F8E5743C346F996B166E6E1B1
+- StudentTest.java 副本 SHA-256: 0B890DA788C8C4C26BB6CFBB4FC386F6FD8D992CABBBF15B2CC9D01CB4B3E68B（zip 内 / 工程内 / 交付副本 三处字节一致）
 
 ## 7. ZIP 自检结果
 - 顶层条目: pom.xml、src、target（无多余顶层文件夹，条目路径统一为 / 分隔）

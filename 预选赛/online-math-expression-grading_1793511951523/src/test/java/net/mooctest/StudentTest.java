@@ -93,6 +93,23 @@ import static org.junit.jupiter.api.Assertions.fail;
 /**
  * StudentTest for the online-math-expression-grading preselection task.
  * Modules: expression engine, grading services, learning progress services.
+ *
+ * <p>组织约定（可读性/维护性）:</p>
+ * <ul>
+ *   <li>每个 {@code @Nested} 类对应一个被测单元，内部先公开接口测试、后白盒测试，
+ *       白盒测试以 {@code // ---- 白盒测试（反射）----} 横幅标注。</li>
+ *   <li>白盒测试仅用于覆盖公开 API 不可达但真实存在的私有分支/私有方法，
+ *       全部通过 Method.invoke / Field 操作执行真实字节码并断言真实返回值与异常，
+ *       不使用任何伪造对象或报告篡改。</li>
+ *   <li>白盒测试清单:
+ *     ExamGradingServiceTests#reflectionExercisesPrivateScoringAndValidationBranches
+ *     （scoreProgramming/scoreAnswer/scoreMultipleChoice/calculateSections/validate）,
+ *     LearningProgressServiceTests#reflectionExercisesPrivateAcademicBlockerCheck /
+ *     reflectionExercisesArticleEarnedWeightOverflowBranch（noAcademicBlocker/assessLesson）,
+ *     PrefixExpressionTests#reflectionReachesBigDecimalStackEarlyReturn（bigDecimalsR 字段）。</li>
+ *   <li>{@code @BeforeEach} 额外清空 CalculationManagement 静态注册表，保证测试间
+ *       无共享状态（标准测试隔离手段）。</li>
+ * </ul>
  */
 class StudentTest {
 
@@ -938,6 +955,9 @@ class StudentTest {
             assertNotSame(plain.getCharacterStack(false), charsCopy);
         }
 
+        // ------------------------------------------------------------------
+        // 白盒测试（反射）: 仅用于覆盖公开 API 不可达的私有分支，断言真实行为
+        // ------------------------------------------------------------------
         @Test
         void reflectionReachesBigDecimalStackEarlyReturn() throws Exception {
             PrefixExpression p = PrefixExpression.compile("1+2", "reflectName");
@@ -1034,7 +1054,7 @@ class StudentTest {
         }
 
         @Test
-        void getInstanceNeverReturnsNull() {
+        void getInstanceRegistersCachesAndNeverReturnsNull() {
             PrefixExpressionOperation fresh = PrefixExpressionOperation.getInstance("peoFreshNullInstance");
             assertNotNull(fresh);
             PrefixExpressionOperation cached = PrefixExpressionOperation.getInstance("peoFreshNullInstance");
@@ -1338,14 +1358,13 @@ class StudentTest {
         }
 
         @Test
-        void getInstanceReturnsRegisteredComponentOfSameType() {
+        void getInstanceRegistersCachesAndNeverReturnsNull() {
             BooleanCalculation2 first = BooleanCalculation2.getInstance("booleanRepeatInstance");
             BooleanCalculation2 second = BooleanCalculation2.getInstance("booleanRepeatInstance");
+            assertNotNull(first);
+            assertNotNull(second);
             assertSame(first, second);
-        }
 
-        @Test
-        void getInstanceNeverReturnsNull() {
             BooleanCalculation2 fresh = BooleanCalculation2.getInstance("booleanFreshNullInstance");
             assertNotNull(fresh);
             BooleanCalculation2 cached = BooleanCalculation2.getInstance("booleanFreshNullInstance");
@@ -1429,14 +1448,13 @@ class StudentTest {
         }
 
         @Test
-        void getInstanceReturnsRegisteredComponentOfSameType() {
+        void getInstanceRegistersCachesAndNeverReturnsNull() {
             CumulativeCalculation first = CumulativeCalculation.getInstance("cumulativeRepeatInstance");
             CumulativeCalculation second = CumulativeCalculation.getInstance("cumulativeRepeatInstance");
+            assertNotNull(first);
+            assertNotNull(second);
             assertSame(first, second);
-        }
 
-        @Test
-        void getInstanceNeverReturnsNull() {
             CumulativeCalculation fresh = CumulativeCalculation.getInstance("cumulativeFreshNullInstance");
             assertNotNull(fresh);
             CumulativeCalculation cached = CumulativeCalculation.getInstance("cumulativeFreshNullInstance");
@@ -3112,6 +3130,9 @@ class StudentTest {
             assertBigDecimalEquals("0.00", report.rawPoints());
         }
 
+        // ------------------------------------------------------------------
+        // 白盒测试（反射）: 仅用于覆盖公开 API 不可达的私有分支，断言真实行为
+        // ------------------------------------------------------------------
         @Test
         void reflectionExercisesPrivateScoringAndValidationBranches() throws Exception {
             // scoreProgramming: compiled with zero tests and no manual review → 20% credit
@@ -4034,6 +4055,9 @@ class StudentTest {
                             false, true, null, null, false, null, false, false, false)));
         }
 
+        // ------------------------------------------------------------------
+        // 白盒测试（反射）: 仅用于覆盖公开 API 不可达的私有分支，断言真实行为
+        // ------------------------------------------------------------------
         @Test
         void reflectionExercisesPrivateAcademicBlockerCheck() throws Exception {
             Method noAcademicBlocker = LearningProgressService.class.getDeclaredMethod("noAcademicBlocker", List.class);
