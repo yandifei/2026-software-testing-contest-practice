@@ -2771,6 +2771,301 @@ class StudentTest {
         assertEquals("terminal workflow cannot accept actions", withdrawError.getMessage());
     }
 
+    // ==================== exact denial reasons (single-failure isolation) ====================
+
+    @Test
+    void accessPolicy_isolatedDenialsProduceExactReasons() {
+        AccessDecision training = decide(actx("A", "A", UserRole.EMPLOYEE, ResourceAction.VIEW,
+                ResourceType.EXPENSE_CLAIM, Sensitivity.CONFIDENTIAL, AccessScope.OWN,
+                true, false, true, true, true, true, false, false, false, false, true, true, false));
+        assertEquals(List.of("security training is required"), training.reasons());
+        AccessDecision mfa = decide(actx("A", "A", UserRole.EMPLOYEE, ResourceAction.VIEW,
+                ResourceType.EXPENSE_CLAIM, Sensitivity.RESTRICTED, AccessScope.OWN,
+                true, false, false, true, true, true, false, false, false, false, true, true, true));
+        assertEquals(List.of("restricted resource requires multi-factor authentication"), mfa.reasons());
+        assertTrue(mfa.stepUpAuthenticationRequired());
+        AccessDecision device = decide(actx("A", "A", UserRole.EMPLOYEE, ResourceAction.VIEW,
+                ResourceType.EXPENSE_CLAIM, Sensitivity.RESTRICTED, AccessScope.OWN,
+                true, false, true, false, true, true, false, false, false, false, true, true, true));
+        assertEquals(List.of("restricted resource requires a trusted device"), device.reasons());
+        AccessDecision network = decide(actx("A", "A", UserRole.FINANCE, ResourceAction.SHARE,
+                ResourceType.EXPENSE_CLAIM, Sensitivity.INTERNAL, AccessScope.OWN,
+                true, false, true, true, false, true, false, false, false, false, true, true, true));
+        assertEquals(List.of("export or sharing requires a trusted network"), network.reasons());
+        AccessDecision region = decide(actx("A", null, UserRole.AUDITOR, ResourceAction.EXPORT,
+                ResourceType.EXPENSE_CLAIM, Sensitivity.INTERNAL, AccessScope.TEAM,
+                true, false, true, true, true, true, false, false, false, false, true, false, true));
+        assertEquals(List.of("cross-region export is not allowed"), region.reasons());
+        AccessDecision hours = decide(actx("A", "A", UserRole.EMPLOYEE, ResourceAction.VIEW,
+                ResourceType.EXPENSE_CLAIM, Sensitivity.RESTRICTED, AccessScope.OWN,
+                true, false, true, true, true, false, false, false, false, false, true, true, true));
+        assertEquals(List.of("restricted resource is unavailable outside business hours"), hours.reasons());
+        AccessDecision delegation = decide(actx("A", "A", UserRole.EMPLOYEE, ResourceAction.VIEW,
+                ResourceType.EXPENSE_CLAIM, Sensitivity.INTERNAL, AccessScope.OWN,
+                true, false, true, true, true, true, true, false, false, false, true, true, true));
+        assertEquals(List.of("delegation has expired or is invalid"), delegation.reasons());
+        AccessDecision holdArchive = decide(actx("A", null, UserRole.SYSTEM_ADMINISTRATOR,
+                ResourceAction.ARCHIVE, ResourceType.CONTRACT, Sensitivity.INTERNAL, AccessScope.ORGANIZATION,
+                true, false, true, true, true, true, false, false, true, false, true, true, true));
+        assertEquals(List.of("resource is under legal hold"), holdArchive.reasons());
+        AccessDecision holdDelete = decide(actx("A", null, UserRole.SYSTEM_ADMINISTRATOR,
+                ResourceAction.DELETE, ResourceType.CONTRACT, Sensitivity.INTERNAL, AccessScope.ORGANIZATION,
+                true, false, true, true, true, true, false, false, true, false, true, true, true));
+        assertEquals(List.of("resource is under legal hold", "role does not grant the requested action"),
+                holdDelete.reasons());
+        AccessDecision archivedUpdate = decide(actx("A", null, UserRole.SYSTEM_ADMINISTRATOR,
+                ResourceAction.UPDATE, ResourceType.CONTRACT, Sensitivity.INTERNAL, AccessScope.ORGANIZATION,
+                true, false, true, true, true, true, false, false, false, true, true, true, true));
+        assertEquals(List.of("archived resource cannot be updated"), archivedUpdate.reasons());
+        AccessDecision restoreLive = decide(actx("A", null, UserRole.SYSTEM_ADMINISTRATOR,
+                ResourceAction.RESTORE, ResourceType.CONTRACT, Sensitivity.INTERNAL, AccessScope.ORGANIZATION,
+                true, false, true, true, true, true, false, false, false, false, true, true, true));
+        assertEquals(List.of("only archived resources can be restored"), restoreLive.reasons());
+        AccessDecision delegatedExport = decide(actx("A", "A", UserRole.AUDITOR, ResourceAction.EXPORT,
+                ResourceType.CONTRACT, Sensitivity.INTERNAL, AccessScope.OWN,
+                true, false, true, true, true, true, true, true, false, false, true, true, true));
+        assertEquals(List.of("delegated permission cannot export resources"), delegatedExport.reasons());
+        AccessDecision delegatedDelete = decide(actx("A", "A", UserRole.FINANCE, ResourceAction.DELETE,
+                ResourceType.EXPENSE_CLAIM, Sensitivity.INTERNAL, AccessScope.OWN,
+                true, false, true, true, true, true, true, true, false, false, true, true, true));
+        assertEquals(List.of("delegated permission cannot delete resources",
+                "role does not grant the requested action"), delegatedDelete.reasons());
+        AccessDecision config = decide(actx("A", null, UserRole.AUDITOR, ResourceAction.VIEW,
+                ResourceType.SYSTEM_CONFIGURATION, Sensitivity.INTERNAL, AccessScope.ORGANIZATION));
+        assertEquals(List.of("role does not grant the requested action",
+                "system configuration requires administrator role"), config.reasons());
+        AccessDecision publicPayroll = decide(actx("A", null, UserRole.FINANCE, ResourceAction.VIEW,
+                ResourceType.PAYROLL, Sensitivity.PUBLIC, AccessScope.DEPARTMENT));
+        assertEquals(List.of("payroll cannot be classified as public"), publicPayroll.reasons());
+        AccessDecision shareProfile = decide(actx("A", null, UserRole.HUMAN_RESOURCES, ResourceAction.SHARE,
+                ResourceType.EMPLOYEE_PROFILE, Sensitivity.INTERNAL, AccessScope.DEPARTMENT,
+                true, false, true, true, true, true, false, false, false, false, false, true, true));
+        assertEquals(List.of("profile sharing requires project membership"), shareProfile.reasons());
+        AccessDecision contractApprove = decide(actx("A", null, UserRole.AUDITOR, ResourceAction.APPROVE,
+                ResourceType.CONTRACT, Sensitivity.INTERNAL, AccessScope.ORGANIZATION));
+        assertEquals(List.of("role does not grant the requested action",
+                "contract approval requires finance or department manager"), contractApprove.reasons());
+        AccessDecision guestApprove = decide(actx("A", "A", UserRole.GUEST, ResourceAction.APPROVE,
+                ResourceType.PUBLIC_DOCUMENT, Sensitivity.PUBLIC, AccessScope.OWN));
+        assertEquals(List.of("role does not grant the requested action"), guestApprove.reasons());
+        AccessDecision guestInternal = decide(actx("A", "A", UserRole.GUEST, ResourceAction.VIEW,
+                ResourceType.PUBLIC_DOCUMENT, Sensitivity.INTERNAL, AccessScope.OWN));
+        assertEquals(List.of("role does not grant the requested action"), guestInternal.reasons());
+        AccessDecision guestExpense = decide(actx("A", "A", UserRole.GUEST, ResourceAction.VIEW,
+                ResourceType.EXPENSE_CLAIM, Sensitivity.INTERNAL, AccessScope.OWN));
+        assertEquals(List.of("guest may only access public documents",
+                "role does not grant the requested action"), guestExpense.reasons());
+        AccessDecision adminPayroll = decide(actx("A", null, UserRole.SYSTEM_ADMINISTRATOR,
+                ResourceAction.VIEW, ResourceType.PAYROLL, Sensitivity.INTERNAL, AccessScope.ORGANIZATION));
+        assertEquals(List.of("role does not grant the requested action"), adminPayroll.reasons());
+        AccessDecision adminPayrollExport = decide(actx("A", null, UserRole.SYSTEM_ADMINISTRATOR,
+                ResourceAction.EXPORT, ResourceType.PAYROLL, Sensitivity.INTERNAL, AccessScope.ORGANIZATION));
+        assertEquals(List.of("role does not grant the requested action"), adminPayrollExport.reasons());
+        AccessDecision adminProfileApprove = decide(actx("A", null, UserRole.SYSTEM_ADMINISTRATOR,
+                ResourceAction.APPROVE, ResourceType.EMPLOYEE_PROFILE, Sensitivity.INTERNAL,
+                AccessScope.ORGANIZATION));
+        assertEquals(List.of("role does not grant the requested action"), adminProfileApprove.reasons());
+        AccessDecision deptPayroll = decide(actx("A", null, UserRole.DEPARTMENT_MANAGER,
+                ResourceAction.VIEW, ResourceType.PAYROLL, Sensitivity.INTERNAL, AccessScope.DEPARTMENT));
+        assertEquals(List.of("role does not grant the requested action"), deptPayroll.reasons());
+        AccessDecision deptConfig = decide(actx("A", null, UserRole.DEPARTMENT_MANAGER,
+                ResourceAction.VIEW, ResourceType.SYSTEM_CONFIGURATION, Sensitivity.INTERNAL,
+                AccessScope.DEPARTMENT));
+        assertEquals(List.of("role does not grant the requested action",
+                "system configuration requires administrator role"), deptConfig.reasons());
+        AccessDecision deptAudit = decide(actx("A", null, UserRole.DEPARTMENT_MANAGER,
+                ResourceAction.VIEW, ResourceType.AUDIT_LOG, Sensitivity.INTERNAL, AccessScope.DEPARTMENT));
+        assertEquals(List.of("role does not grant the requested action"), deptAudit.reasons());
+        AccessDecision deptDelete = decide(actx("A", null, UserRole.DEPARTMENT_MANAGER,
+                ResourceAction.DELETE, ResourceType.CONTRACT, Sensitivity.INTERNAL, AccessScope.DEPARTMENT));
+        assertEquals(List.of("role does not grant the requested action"), deptDelete.reasons());
+        AccessDecision deptWrongScope = decide(actx("A", null, UserRole.DEPARTMENT_MANAGER,
+                ResourceAction.VIEW, ResourceType.CONTRACT, Sensitivity.INTERNAL, AccessScope.ORGANIZATION));
+        assertEquals(List.of("role does not grant the requested action",
+                "requested scope is outside the actor's authority"), deptWrongScope.reasons());
+        AccessDecision deptOther = decide(actx("A", null, "D1", "D2", UserRole.DEPARTMENT_MANAGER,
+                ResourceAction.VIEW, ResourceType.CONTRACT, Sensitivity.INTERNAL, AccessScope.DEPARTMENT,
+                true, false, true, true, true, true, false, false, false, false, true, true, true));
+        assertEquals(List.of("role does not grant the requested action",
+                "requested scope is outside the actor's authority"), deptOther.reasons());
+        AccessDecision employeeNoScope = decide(actx("A", "B", UserRole.EMPLOYEE, ResourceAction.VIEW,
+                ResourceType.EXPENSE_CLAIM, Sensitivity.INTERNAL, AccessScope.OWN));
+        assertEquals(List.of("role does not grant the requested action",
+                "requested scope is outside the actor's authority"), employeeNoScope.reasons());
+        AccessDecision teamUpdate = decide(actx("A", null, UserRole.TEAM_LEAD, ResourceAction.UPDATE,
+                ResourceType.LEAVE_REQUEST, Sensitivity.INTERNAL, AccessScope.TEAM));
+        assertEquals(List.of("role does not grant the requested action"), teamUpdate.reasons());
+        AccessDecision auditorConfig = decide(actx("A", null, UserRole.AUDITOR, ResourceAction.VIEW,
+                ResourceType.SYSTEM_CONFIGURATION, Sensitivity.INTERNAL, AccessScope.ORGANIZATION));
+        assertEquals(List.of("role does not grant the requested action",
+                "system configuration requires administrator role"), auditorConfig.reasons());
+    }
+
+    @Test
+    void accessPolicy_teamAndDepartmentScopeMembersAreExact() {
+        AccessDecision hrTeam = decide(actx("A", null, UserRole.HUMAN_RESOURCES, ResourceAction.VIEW,
+                ResourceType.LEAVE_REQUEST, Sensitivity.INTERNAL, AccessScope.TEAM));
+        assertTrue(hrTeam.allowed());
+        AccessDecision financeTeam = decide(actx("A", null, UserRole.FINANCE, ResourceAction.VIEW,
+                ResourceType.EXPENSE_CLAIM, Sensitivity.INTERNAL, AccessScope.TEAM));
+        assertTrue(financeTeam.allowed());
+        AccessDecision auditorTeam = decide(actx("A", null, UserRole.AUDITOR, ResourceAction.VIEW,
+                ResourceType.EXPENSE_CLAIM, Sensitivity.INTERNAL, AccessScope.TEAM));
+        assertTrue(auditorTeam.allowed());
+        AccessDecision adminTeam = decide(actx("A", null, UserRole.SYSTEM_ADMINISTRATOR, ResourceAction.VIEW,
+                ResourceType.CONTRACT, Sensitivity.INTERNAL, AccessScope.TEAM));
+        assertTrue(adminTeam.allowed());
+        AccessDecision hrDeptOther = decide(actx("A", null, "D1", "D2", UserRole.HUMAN_RESOURCES,
+                ResourceAction.VIEW, ResourceType.PAYROLL, Sensitivity.CONFIDENTIAL, AccessScope.DEPARTMENT,
+                true, false, true, true, true, true, false, false, false, false, true, true, true));
+        assertTrue(hrDeptOther.allowed());
+        AccessDecision financeDeptOther = decide(actx("A", null, "D1", "D2", UserRole.FINANCE,
+                ResourceAction.VIEW, ResourceType.EXPENSE_CLAIM, Sensitivity.CONFIDENTIAL,
+                AccessScope.DEPARTMENT, true, false, true, true, true, true, false, false, false, false,
+                true, true, true));
+        assertTrue(financeDeptOther.allowed());
+        AccessDecision auditorDeptOther = decide(actx("A", null, "D1", "D2", UserRole.AUDITOR,
+                ResourceAction.VIEW, ResourceType.EXPENSE_CLAIM, Sensitivity.CONFIDENTIAL,
+                AccessScope.DEPARTMENT, true, false, true, true, true, true, false, false, false, false,
+                true, true, true));
+        assertTrue(auditorDeptOther.allowed());
+        AccessDecision adminDeptOther = decide(actx("A", null, "D1", "D2", UserRole.SYSTEM_ADMINISTRATOR,
+                ResourceAction.VIEW, ResourceType.CONTRACT, Sensitivity.INTERNAL, AccessScope.DEPARTMENT,
+                true, false, true, true, true, true, false, false, false, false, true, true, true));
+        assertTrue(adminDeptOther.allowed());
+        AccessDecision auditorDept = decide(actx("A", null, UserRole.AUDITOR, ResourceAction.VIEW,
+                ResourceType.EXPENSE_CLAIM, Sensitivity.INTERNAL, AccessScope.DEPARTMENT));
+        assertTrue(auditorDept.allowed());
+        AccessDecision adminDept = decide(actx("A", null, UserRole.SYSTEM_ADMINISTRATOR, ResourceAction.VIEW,
+                ResourceType.CONTRACT, Sensitivity.INTERNAL, AccessScope.DEPARTMENT));
+        assertTrue(adminDept.allowed());
+        AccessDecision financeOrg = decide(actx("A", null, UserRole.FINANCE, ResourceAction.VIEW,
+                ResourceType.EXPENSE_CLAIM, Sensitivity.INTERNAL, AccessScope.ORGANIZATION));
+        assertTrue(financeOrg.allowed());
+        AccessDecision adminOrg = decide(actx("A", null, UserRole.SYSTEM_ADMINISTRATOR, ResourceAction.VIEW,
+                ResourceType.CONTRACT, Sensitivity.INTERNAL, AccessScope.ORGANIZATION));
+        assertTrue(adminOrg.allowed());
+        AccessDecision employeeOwnCreate = decide(actx("A", null, UserRole.EMPLOYEE, ResourceAction.CREATE,
+                ResourceType.EXPENSE_CLAIM, Sensitivity.INTERNAL, AccessScope.OWN));
+        assertTrue(employeeOwnCreate.allowed());
+    }
+
+    @Test
+    void expensePolicy_minimumTextLengthsSkipWarnings() {
+        ExpenseAssessment twoCharMerchant = assess(List.of(
+                new ExpenseItem("i1", ExpenseCategory.MEAL, new BigDecimal("10"), Currency.getInstance("CNY"),
+                        TODAY.minusDays(5), "AB", "Business purpose here", ReceiptType.STANDARD_RECEIPT,
+                        PaymentMethod.PERSONAL_CARD, 0, false, false, false)));
+        assertFalse(twoCharMerchant.warnings().contains("merchant name is unusually short for item i1"));
+        ExpenseAssessment eightCharPurpose = assess(List.of(
+                new ExpenseItem("i1", ExpenseCategory.MEAL, new BigDecimal("10"), Currency.getInstance("CNY"),
+                        TODAY.minusDays(5), "Merchant X", "12345678", ReceiptType.STANDARD_RECEIPT,
+                        PaymentMethod.PERSONAL_CARD, 0, false, false, false)));
+        assertFalse(eightCharPurpose.warnings().contains("business purpose is too brief for item i1"));
+        assertEquals(List.of(), eightCharPurpose.warnings());
+    }
+
+    @Test
+    void workflowEngine_cancelReasonAndTimestampBoundaries() {
+        ApprovalStep step = step("s", Set.of("A"), StepMode.ANY_ONE, 1, false, false, null);
+        WorkflowSnapshot pending = ENGINE.start("W1", "R1", List.of(step), T0, false, true);
+        IllegalArgumentException fourChars = assertThrows(IllegalArgumentException.class,
+                () -> ENGINE.cancel(pending, true, "abcd", T1));
+        assertEquals("cancellation reason must contain at least five characters", fourChars.getMessage());
+        WorkflowSnapshot fiveChars = ENGINE.cancel(pending, true, "abcde", T1);
+        assertEquals(WorkflowState.CANCELLED, fiveChars.state());
+        WorkflowSnapshot sameInstant = ENGINE.act(pending, new WorkflowAction("A",
+                ApprovalDecision.APPROVE, null, T0));
+        assertEquals(WorkflowState.APPROVED, sameInstant.state());
+        WorkflowSnapshot pendingWithdraw = ENGINE.start("W2", "R1", List.of(step), T0, false, true);
+        assertEquals(WorkflowState.WITHDRAWN, ENGINE.withdraw(pendingWithdraw, "R1", T0).state());
+    }
+
+    // ==================== exact failure messages and audit flags ====================
+
+    @Test
+    void accessPolicy_auditFlagIsSetForAuditLogResources() {
+        AccessDecision viewAuditLog = decide(actx("A", null, UserRole.AUDITOR, ResourceAction.VIEW,
+                ResourceType.AUDIT_LOG, Sensitivity.INTERNAL, AccessScope.ORGANIZATION));
+        assertTrue(viewAuditLog.allowed());
+        assertTrue(viewAuditLog.auditRequired());
+    }
+
+    @Test
+    void workflowEngine_actAndCancelMessagesIdentifyEachCheck() {
+        WorkflowSnapshot pending = ENGINE.start("W1", "R1", List.of(step("s", Set.of("A"),
+                StepMode.ANY_ONE, 1, false, false, null)), T0, false, true);
+        IllegalArgumentException before = assertThrows(IllegalArgumentException.class,
+                () -> ENGINE.act(pending, new WorkflowAction("A", ApprovalDecision.APPROVE, null,
+                        T0.minusSeconds(1))));
+        assertEquals("action time cannot precede the previous update", before.getMessage());
+        IllegalArgumentException unauthorized = assertThrows(IllegalArgumentException.class,
+                () -> ENGINE.act(pending, new WorkflowAction("X", ApprovalDecision.APPROVE, null, T1)));
+        assertEquals("actor is not authorized for the current step", unauthorized.getMessage());
+        IllegalArgumentException blankRequester = assertThrows(IllegalArgumentException.class,
+                () -> ENGINE.start("W", "  ", List.of(step("s", Set.of("A"), StepMode.ANY_ONE, 1, false,
+                        false, null)), T0, false, true));
+        assertEquals("requesterId must not be blank", blankRequester.getMessage());
+        WorkflowSnapshot approved = ENGINE.start("W1", "R1", List.of(step("s", Set.of("R1"),
+                StepMode.ANY_ONE, 1, false, true, null)), T0, false, true);
+        IllegalStateException terminalCancel = assertThrows(IllegalStateException.class,
+                () -> ENGINE.cancel(approved, true, "reason", T1));
+        assertEquals("terminal workflow cannot be cancelled", terminalCancel.getMessage());
+        IllegalArgumentException blankReason = assertThrows(IllegalArgumentException.class,
+                () -> ENGINE.cancel(pending, true, "   ", T1));
+        assertEquals("cancellation reason must contain at least five characters", blankReason.getMessage());
+    }
+
+    @Test
+    void workflowEngine_withdrawAndDelegateMessagesIdentifyEachCheck() {
+        ApprovalStep step = step("s", Set.of("A", "B"), StepMode.REQUIRED_COUNT, 2, true, false, null);
+        WorkflowSnapshot pending = ENGINE.start("W1", "R1", List.of(step), T0, false, true);
+        IllegalArgumentException notRequester = assertThrows(IllegalArgumentException.class,
+                () -> ENGINE.withdraw(pending, "X", T1));
+        assertEquals("only the requester may withdraw the workflow", notRequester.getMessage());
+        IllegalArgumentException blankWithdraw = assertThrows(IllegalArgumentException.class,
+                () -> ENGINE.withdraw(pending, "  ", T1));
+        assertEquals("actorId must not be blank", blankWithdraw.getMessage());
+        IllegalArgumentException delegateBefore = assertThrows(IllegalArgumentException.class,
+                () -> ENGINE.delegate(pending, "A", "C", T0.minusSeconds(1)));
+        assertEquals("delegation time cannot precede the previous update", delegateBefore.getMessage());
+        IllegalArgumentException delegateNotApprover = assertThrows(IllegalArgumentException.class,
+                () -> ENGINE.delegate(pending, "X", "C", T1));
+        assertEquals("delegating actor is not an approver", delegateNotApprover.getMessage());
+        IllegalArgumentException delegateBlank = assertThrows(IllegalArgumentException.class,
+                () -> ENGINE.delegate(pending, "A", "  ", T1));
+        assertEquals("toActor must not be blank", delegateBlank.getMessage());
+        WorkflowSnapshot requesterApprover = ENGINE.start("W1", "R1", List.of(step("s", Set.of("R1", "A"),
+                StepMode.ANY_ONE, 1, true, true, null)), T0, false, true);
+        IllegalArgumentException toRequester = assertThrows(IllegalArgumentException.class,
+                () -> ENGINE.delegate(requesterApprover, "R1", "R1", T1));
+        assertEquals("cannot delegate approval to the requester", toRequester.getMessage());
+    }
+
+    @Test
+    void stepProgress_andApprovalStepMessagesIdentifyEachCheck() {
+        ApprovalStep step = step("s", Set.of("A", "B"), StepMode.REQUIRED_COUNT, 2, true, false, null);
+        StepProgress empty = StepProgress.empty(step);
+        IllegalArgumentException blankActor = assertThrows(IllegalArgumentException.class,
+                () -> empty.decide("  ", ApprovalDecision.APPROVE));
+        assertEquals("actorId must not be blank", blankActor.getMessage());
+        IllegalArgumentException unknownActor = assertThrows(IllegalArgumentException.class,
+                () -> empty.decide("X", ApprovalDecision.APPROVE));
+        assertEquals("actor is not an approver for the current step", unknownActor.getMessage());
+        IllegalArgumentException blankTo = assertThrows(IllegalArgumentException.class,
+                () -> step.delegate("A", "  "));
+        assertEquals("delegate must not be blank", blankTo.getMessage());
+        IllegalArgumentException sameActor = assertThrows(IllegalArgumentException.class,
+                () -> step.delegate("A", "A"));
+        assertEquals("cannot delegate to the same actor", sameActor.getMessage());
+        IllegalArgumentException alreadyApprover = assertThrows(IllegalArgumentException.class,
+                () -> step.delegate("A", "B"));
+        assertEquals("delegate is already an approver", alreadyApprover.getMessage());
+        IllegalArgumentException notApprover = assertThrows(IllegalArgumentException.class,
+                () -> step.delegate("X", "C"));
+        assertEquals("delegating actor is not an approver", notApprover.getMessage());
+    }
+
     // ==================== helpers ====================
 
     private static String pad(String prefix, int length) {
