@@ -1,0 +1,48 @@
+{
+  "date": "2026-11-01",
+  "scope": "fresh Credit reconstruction",
+  "source_pom_hash_match": true,
+  "protected_files": 33,
+  "junit": {
+    "tests": 117,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  "junit_seconds": 0.347,
+  "jacoco": {
+    "INSTRUCTION": {
+      "covered": 1995,
+      "missed": 4
+    },
+    "BRANCH": {
+      "covered": 233,
+      "missed": 3
+    },
+    "LINE": {
+      "covered": 494,
+      "missed": 3
+    },
+    "COMPLEXITY": {
+      "covered": 213,
+      "missed": 3
+    },
+    "METHOD": {
+      "covered": 98,
+      "missed": 0
+    },
+    "CLASS": {
+      "covered": 32,
+      "missed": 0
+    }
+  },
+  "pit": {
+    "KILLED": 263,
+    "SURVIVED": 9
+  },
+  "test_sha256": "a548ff6d6a39f7db52e1c344c4ef3aa2ea6eaa69b175b537b4d35ce09e3f9b34",
+  "jacoco_xml_sha256": "a0b02cff4fcfec41bc07212c139d1fc32a975d66dd5e825238ac621ee684402f",
+  "mutations_xml_sha256": "d1aa603fbe7d6ae7e844fa6f8f2c13da64312990dacb3a005f858e2d657fab2f",
+  "command": "mvn clean test org.pitest:pitest-maven:mutationCoverage -DargLine=-javaagent:<JaCoCo 0.8.11 runtime>=destfile=target/jacoco.exec -DoutputFormats=HTML,XML",
+  "maven_exit_code": 0
+}

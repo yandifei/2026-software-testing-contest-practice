@@ -1,0 +1,17 @@
+{
+  "pom.xml": "582bb07a6d169db20e3327ae657b7693ab6ea8636a2e2735ecd3b58a22f93c62",
+  "src/main/java/net/mooctest/Budget.java": "5215b92768a0f9bb2167d275d036087960f93bd0d5e6c20327c73ff4684b7065",
+  "src/main/java/net/mooctest/BudgetOptimizer.java": "24c2741b6a691179a7a1ce7f0d3daa22e5bba3a732d84deea9f0daa217bdaa1a",
+  "src/main/java/net/mooctest/DomainException.java": "ac8c9e22c97f78140158da4529ac83dc1aef69c0c66d58ffbde38bac2b512cc5",
+  "src/main/java/net/mooctest/GraphUtils.java": "2e40df31c37d78d2d6a005b4dcc6e058e131787c289d7b7316a77771d1111a7f",
+  "src/main/java/net/mooctest/IdGenerator.java": "f923279aa341c15f3d3cc12c50dd404e2071a74d1282c5a3b3ed6de6cedd35e7",
+  "src/main/java/net/mooctest/MatchingEngine.java": "7c07f7b3f5389b60a74a41b93964858b3b989e27a086e84910eae95cfa945d52",
+  "src/main/java/net/mooctest/Project.java": "62cf2c9228bac8cc62362d92b90c93480ac677dccc7fc514bffe2730ccfa0cb9",
+  "src/main/java/net/mooctest/ReportGenerator.java": "9f0efbde5a7006c153ab6412f342be852fa7a98916b760011112807b01b0923d",
+  "src/main/java/net/mooctest/Researcher.java": "e26e6b92ec86e2067a47c531bc251f3798af1ac96e231c8ca8a64e244edd8164",
+  "src/main/java/net/mooctest/Resource.java": "c54811872e43d4aeb43e79610e32b3cd46aaab5e3c6de37c81e144550abeebe0",
+  "src/main/java/net/mooctest/Risk.java": "c0f61e2557d6479cf1b83ef1d3e3759c315a6490c809031d801f4ffd71440bdf",
+  "src/main/java/net/mooctest/RiskAnalyzer.java": "0be5d6256c001de8477924a71a54fc50ebded2c7eea6be6f6f4877c7ba350554",
+  "src/main/java/net/mooctest/Scheduler.java": "d5a6265023758fc535edbb4887985b8001ad22ed9a29224d10d8bc783325758e",
+  "src/main/java/net/mooctest/Task.java": "0a02073aeda95247638aa48783f63f6da95abe0024b017a1fc37f500e76c3f01"
+}

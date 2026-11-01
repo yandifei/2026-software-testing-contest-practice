@@ -1,0 +1,122 @@
+{
+  "like_for_like": true,
+  "limitations": [],
+  "identity_fields": [
+    "class",
+    "method",
+    "descriptor",
+    "mutator",
+    "indexes"
+  ],
+  "identity_note": "Blocks, source lines and killingTest are not identity fields. Status transitions are computed only for shared identities.",
+  "before": {
+    "directory": "B:\\软件测试大赛\\output\\research",
+    "manifest_sha256": "1ade1eed009156d3ae0d2b8d550c3657e0c4607d5ecbc09c1014ce75d1709592",
+    "pit_xml_sha256": "d4390ac4a1906502db6aeb7ee11852cfaf4a5554cf06077c465612c64b5f60ab",
+    "baseline_identity": "f823e79b406b2861b1377cc817e974965609635123966649593b547921f8773e",
+    "test_source_sha256": "6d92ef1799fbe96a085904bda26937630db4921dbbea523c181c7afff94cdb07",
+    "date": "2026-10-31",
+    "run_finished_at": "2026-10-31T22:58:15+08:00",
+    "tests": {
+      "tests": 87,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "jacoco": {
+      "INSTRUCTION": {
+        "missed": 0,
+        "covered": 2160
+      },
+      "BRANCH": {
+        "missed": 0,
+        "covered": 240
+      },
+      "LINE": {
+        "missed": 0,
+        "covered": 405
+      },
+      "COMPLEXITY": {
+        "missed": 0,
+        "covered": 249
+      },
+      "METHOD": {
+        "missed": 0,
+        "covered": 129
+      },
+      "CLASS": {
+        "missed": 0,
+        "covered": 20
+      }
+    },
+    "statuses": {
+      "KILLED": 284,
+      "SURVIVED": 21
+    },
+    "generated": 305,
+    "killed": 284
+  },
+  "after": {
+    "directory": "B:\\软件测试大赛\\output\\rebuild-2026-11-01\\research",
+    "manifest_sha256": "821e537b71667aa0bcbdb8b07a2bf46df37c5ccb153374fdc957f2fc10502b44",
+    "pit_xml_sha256": "fa10dfa02c68d96969e85acae8571b334666312c536369c717dde51f290370c0",
+    "baseline_identity": "f823e79b406b2861b1377cc817e974965609635123966649593b547921f8773e",
+    "test_source_sha256": "e478781ff57841186968da1bdd1ee376b631d1cde3fa1d054fe45ab0b65f9dbb",
+    "date": "2026-11-01",
+    "run_finished_at": "2026-11-01T12:04:35+08:00",
+    "tests": {
+      "tests": 24,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "jacoco": {
+      "INSTRUCTION": {
+        "missed": 0,
+        "covered": 2160
+      },
+      "BRANCH": {
+        "missed": 0,
+        "covered": 240
+      },
+      "LINE": {
+        "missed": 0,
+        "covered": 405
+      },
+      "COMPLEXITY": {
+        "missed": 0,
+        "covered": 249
+      },
+      "METHOD": {
+        "missed": 0,
+        "covered": 129
+      },
+      "CLASS": {
+        "missed": 0,
+        "covered": 20
+      }
+    },
+    "statuses": {
+      "KILLED": 284,
+      "SURVIVED": 21
+    },
+    "generated": 305,
+    "killed": 284
+  },
+  "generated_set": {
+    "unchanged": true,
+    "common_count": 305,
+    "removed_count": 0,
+    "added_count": 0,
+    "removed": [],
+    "added": []
+  },
+  "shared_mutations": {
+    "killed_gain_count": 0,
+    "killed_loss_count": 0,
+    "killed_gains": [],
+    "killed_losses": [],
+    "all_status_changes": []
+  },
+  "denominator_policy": "Original generated totals are retained for both runs. No equivalent-mutant exclusions or adjusted scores are calculated."
+}

@@ -1,0 +1,66 @@
+{
+  "date": "2026-11-01",
+  "timezone": "Asia/Shanghai",
+  "run_finished_at": "2026-11-01T12:05:06+08:00",
+  "test_source_sha256": "a548ff6d6a39f7db52e1c344c4ef3aa2ea6eaa69b175b537b4d35ce09e3f9b34",
+  "tests": {
+    "tests": 117,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  "jacoco": {
+    "INSTRUCTION": {
+      "missed": 4,
+      "covered": 1995
+    },
+    "BRANCH": {
+      "missed": 3,
+      "covered": 233
+    },
+    "LINE": {
+      "missed": 3,
+      "covered": 494
+    },
+    "COMPLEXITY": {
+      "missed": 3,
+      "covered": 213
+    },
+    "METHOD": {
+      "missed": 0,
+      "covered": 98
+    },
+    "CLASS": {
+      "missed": 0,
+      "covered": 32
+    }
+  },
+  "pit": {
+    "KILLED": 263,
+    "SURVIVED": 9
+  },
+  "protected_files": 33,
+  "source_pom_matches_saved_baseline": true,
+  "baseline_sha256": "bf2732dcf6ff4e6766e88bd2e6d8197af4868829933e08a41d3f41010da60bac",
+  "freshness_checks": "source/test/class/report mtimes and complete Maven log summaries; not a cryptographic build attestation",
+  "verification_log": {
+    "file": "verification-rebuild.log",
+    "sha256": "e2579f70c7c6b11a631a59cc279d0c1023039fda64552c06d4cccb46ecc8f50f"
+  },
+  "reports": {
+    "target/surefire-reports/TEST-net.mooctest.CreditRebuiltTest.xml": "1c4234a2591c178751af48c5be70846a0fd1554dd0853682f7155646928f1d5d",
+    "target/site/jacoco/jacoco.xml": "a0b02cff4fcfec41bc07212c139d1fc32a975d66dd5e825238ac621ee684402f",
+    "target/pit-reports/mutations.xml": "d1aa603fbe7d6ae7e844fa6f8f2c13da64312990dacb3a005f858e2d657fab2f"
+  },
+  "zip_entries": 199,
+  "files": {
+    "CreditRebuiltTest.java": {
+      "bytes": 19210,
+      "sha256": "a548ff6d6a39f7db52e1c344c4ef3aa2ea6eaa69b175b537b4d35ce09e3f9b34"
+    },
+    "Credit-Card-Validator.zip": {
+      "bytes": 320562,
+      "sha256": "7f64f4fbea529a70109b29182583bb1912e7fc98cb7c4f8cd5b3013464c3ad3e"
+    }
+  }
+}

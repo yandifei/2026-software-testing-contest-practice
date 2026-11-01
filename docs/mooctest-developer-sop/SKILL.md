@@ -44,6 +44,8 @@ description: 为慕测软件测试大赛开发者赛项核对规则、编写和�
 
 进一步受私有计数器、时钟或字段可观察性限制时，按用户授权与当场规则选择是否采用 [白盒补测](references/whitebox-research.md)。本地实验与可上传版本分别注明；控制共享状态必须恢复，已证不可达或等价的局部逻辑不因使用反射而自动可测。
 
+用户明确要求从头重做时，读取 [独立重做与新旧比较](references/independent-rebuild.md)，保留原最好版本，在独立目录重新设计，并按同一变异集合比较实际收益与回退。
+
 ## 打包
 
 读取 [测试工作流](references/workflow.md)第 4 节，使用 [交付记录模板](assets/delivery-record.md)填写结果。
