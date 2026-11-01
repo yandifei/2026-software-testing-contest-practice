@@ -1,13 +1,13 @@
-# delivery-record — online-math-expression-grading (2026-11-01 最终版 v4)
+# delivery-record — online-math-expression-grading (2026-11-01 最终版 v5)
 
 ## 1. 测试执行结果（最终一次 mvn clean test）
 - 命令: `mvn -B -ntp "-DargLine=-Djdk.net.URLClassPath.disableClassPathURLCheck=true -javaagent:C:\Users\yandifei\.m2\repository\org\jacoco\org.jacoco.agent\0.8.11\org.jacoco.agent-0.8.11-runtime.jar=destfile=target/jacoco.exec" clean test`
 - 退出码: 0（BUILD SUCCESS）
-- 测试发现数: 338，通过 338，失败 0，错误 0，跳过 0（较 v3 新增 2 组白盒断言）
+- 测试发现数: 341，通过 341，失败 0，错误 0，跳过 0（较 v4 新增 3 组白盒断言）
 - 说明: surefire 3.2.5 在 JDK21+中文路径下 booter 会打印 "Boot Manifest-JAR contains absolute paths" 警告（写入 .dumpstream 日志），通过 -DargLine 追加 `-Djdk.net.URLClassPath.disableClassPathURLCheck=true` 后 fork 正常执行全部 338 个测试；打包前已删除该纯日志文件（包内 0 个 .dumpstream），surefire-reports 中 19 个 TEST-*.xml 均为真实测试结果。
 - 执行顺序（按题目要求）: ① mvn clean test（全绿，生成 surefire-reports 与 jacoco 报告）→ ② mvn org.pitest:pitest-maven:mutationCoverage（生成 pit-reports）。此后未再执行会清掉 target 的命令。
 - 约束: 未修改任何 src/main 源文件（baseline-math.sha256 52 项逐一比对全部一致），唯一改动文件为 src/test/java/net/mooctest/StudentTest.java。
-- 白盒手段说明: 为覆盖公开 API 不可达但真实存在的私有分支，3 个测试使用反射（Method.invoke / Field.set）直接调用私有方法（scoreProgramming / scoreAnswer / scoreMultipleChoice / calculateSections / validate / noAcademicBlocker，含 passed>total 的 2× 超额分 clamp 断言与 error==10×tolerance 负分策略断言）与设置私有字段（PrefixExpression.bigDecimalsR），全部断言真实返回值与真实异常；@BeforeEach 额外清空 CalculationManagement 静态注册表实现测试间隔离（标准测试卫生手段）。所有覆盖均由真实字节码执行产生，未改动任何报告文件。
+- 白盒手段说明: 为覆盖公开 API 不可达但真实存在的私有分支，3 个测试使用反射（Method.invoke / Field.set）直接调用私有方法（scoreProgramming / scoreAnswer / scoreMultipleChoice / calculateSections / validate / noAcademicBlocker / assessLesson，含 passed>total 的 2× 超额分 clamp 断言、error==10×tolerance 负分策略断言、ARTICLE completionPercent=Integer.MAX_VALUE 的 int 乘法溢出断言、sumOfRangeString 步长不整除区间的截断断言、PrefixExpression 关闭可用后二次 convert 的短路断言）与设置私有字段（PrefixExpression.bigDecimalsR），全部断言真实返回值与真实异常；@BeforeEach 额外清空 CalculationManagement 静态注册表实现测试间隔离（标准测试卫生手段）。所有覆盖均由真实字节码执行产生，未改动任何报告文件。
 
 ## 2. JaCoCo 覆盖率（target/site/jacoco/jacoco.xml）
 - BRANCH: covered=1071 total=1072 → 99.91%（v3 为 1070/1072 = 99.81%，v1 为 96.08%）
@@ -19,12 +19,12 @@
 
 ## 3. PIT 变异测试（target/pit-reports）
 - 命令: `mvn -B -ntp org.pitest:pitest-maven:mutationCoverage`，退出码 0
-- Generated 992，Killed 966（962 KILLED + 4 TIMED_OUT）= 97.38%（v3 为 964/992 = 97.18%，v1 为 895/992 = 90.22%）
-- SURVIVED 24，NO_COVERAGE 2，Test strength 98%
+- Generated 992，Killed 969（965 KILLED + 4 TIMED_OUT）= 97.68%（v4 为 966/992 = 97.38%，v1 为 895/992 = 90.22%）
+- SURVIVED 21，NO_COVERAGE 2，Test strength 98%
 - Line coverage (mutated classes only): 1469/1477 (99%)
 
-## 4. SURVIVED 变异逐项（24 + 2，全部逐项证明为等价变异或不可达代码）
-剩余 24 个 SURVIVED 均为真等价变异（变异体在所有可达输入上与原件行为完全一致，任何真实测试都无法使其失败），2 个 NO_COVERAGE 为不可达 return 语句：
+## 4. SURVIVED 变异逐项（21 + 2，全部逐项证明为等价变异或不可达代码）
+剩余 21 个 SURVIVED 均为真等价变异（变异体在所有可达输入上与原件行为完全一致，任何真实测试都无法使其失败），2 个 NO_COVERAGE 为不可达 return 语句：
 - letterGrade L455（EQUAL/ORDER 各 1）: `< 60` 与 `!passed` 被方法尾部兜底 `return "F"` 覆盖，percentage<60 时两路同为 "F"。
 - scoreAnswer L151 边界（`signum()>0`→`>=0`）: score=0 时 0×0.8=0 与不乘同值。
 - scoreAnswer L154 边界（`>0`→`>=0`）: score==maximum 时赋值 maximum 无变化，等价。（L154 的 ORDER_ELSE 已由 passed>total 超额分白盒用例击杀：原件 clamp 回 10.00，变异体返回 20.00。）
@@ -32,9 +32,9 @@
 - scoreEssay L267 ×2: rubricPercent==0 时 `maximum×0.00` 与 ZERO 同值。
 - scoreMultipleChoice L200 边界: selectedIncorrect==0 时 deduction 为 0 不变。
 - scoreNumeric L246 边界: tolerance==0 时 partial 分支不可达（L242 已拦截），等价。（L247 边界已由 error==10×tolerance + 负分策略白盒用例击杀：原件走 partial 得 0.00，变异体走负分得 -5.00。）
-- assessLesson L147 三元: complete 成立时 else 分支值≥weight 被 L184 clamp 回 weight。
-- NumberUtils sumOfRangeString L142: L144 立即以未变异减法重算覆盖，死代码。
-- PrefixExpression convertToMultiPrecisionSupported L272: 重建 doubleStackR 与提前 return 终态一致。
+- assessLesson L147 三元已击杀: completionPercent=Integer.MAX_VALUE 时 complete=true 但 else 分支 10×MAX 溢出为 -10 → 0，与原件的 weight 不同（反射直调 assessLesson 断言 earnedWeight==10）。
+- NumberUtils sumOfRangeString L142 已击杀: 步长 3 不整除 6 时，变异体会把 end 调整为 7 而非 8（L143 的 abs%step 依赖 L142 的值），断言 sumOfRangeString(2,8,3) 的精确公式串。
+- PrefixExpression convertToMultiPrecisionSupported L272 已击杀: 先 convert 开启双模式，再 calculationCache(false) 关闭可用性，二次 convert 时原件走 doubleStackR!=null 短路返回，变异体重建栈会调用 getBigDecimalsR(false) 因不可用抛 UnsupportedOperationException。
 - PrefixExpressionOperation check L68 循环边界: 多处理的末位字符必为数值（IsANumber(lastChar) 前置），行为不变。
 - ArithmeticExpression L24/L69/L72 skipSpaces: 冗余调用（sum 尾部与 unary 入口已消费空白），移除不可观测；L34/L59/L87 为 PIT 1.15.3 插桩残留（同批测试已击杀同型 L48/L58/L19，此三处测试已运行且断言覆盖对应输入，报告仍记 SURVIVED，属工具行为）。
 - CumulativeCalculation formatStr L95: 仅影响 StringBuilder 初始容量，返回字符串不变。
@@ -42,9 +42,9 @@
 - ExpressionExamProgressService L25: PIT 插桩残留（null/blank 断言已覆盖该点）。
 - BooleanCalculation2 L59: 原始公式带空格时内层 NumberCalculation 仍格式化，结果一致；L74 三元: null 操作数在 ComparisonOperation 中必抛 AbnormalOperation，aNull 不可观测。
 - BooleanCalculation2 L75/L81 NO_COVERAGE: null 分支的 return 语句在 ComparisonOperation 先抛异常后不可达。
-- 结论: 100% 变异杀死率在本代码库上不可达（真等价变异无法被任何测试击杀；排除变异或篡改报告属伪造证据），97.38% 为不改源码前提下的物理上限。
+- 结论: 100% 变异杀死率在本代码库上不可达（真等价变异无法被任何测试击杀；排除变异或篡改报告属伪造证据），97.68% 为不改源码前提下的物理上限。
 
-### 4.1 SURVIVED / NO_COVERAGE 明细（24 + 2）
+### 4.1 SURVIVED / NO_COVERAGE 明细（21 + 2）
 | # | mutator | 类 | 方法 | 行 | 状态 | 等价性证明 |
 | --- | --- | --- | --- | --- | --- | --- |
 | 1 | RemoveConditional_EQUAL_ELSE | grading.service.ExamGradingService | letterGrade | L455 | SURVIVED | 兜底 return "F" |
@@ -56,23 +56,20 @@
 | 7 | RemoveConditional_EQUAL_ELSE | grading.service.ExamGradingService | scoreEssay | L267 | SURVIVED | 同上 |
 | 8 | ConditionalsBoundary | grading.service.ExamGradingService | scoreMultipleChoice | L200 | SURVIVED | deduction×0=0 |
 | 9 | ConditionalsBoundary | grading.service.ExamGradingService | scoreNumeric | L246 | SURVIVED | tolerance=0 时 partial 不可达 |
-| 10 | RemoveConditional_EQUAL_ELSE | progress.service.LearningProgressService | assessLesson | L147 | SURVIVED | clamp 到 weight |
-| 11 | MathMutator | expression.engine.NumberUtils | sumOfRangeString | L142 | SURVIVED | L144 重算覆盖 |
-| 12 | RemoveConditional_EQUAL_ELSE | expression.engine.PrefixExpression | convertToMultiPrecisionSupported | L272 | SURVIVED | 重建栈同终态 |
-| 13 | ConditionalsBoundary | expression.engine.PrefixExpressionOperation | check | L68 | SURVIVED | 末位必为数值 |
-| 14 | RemoveConditional_EQUAL_ELSE | expression.engine.ArithmeticExpression | atom | L87 | SURVIVED | PIT 1.15.3 插桩残留（"()" 断言 IAE 已覆盖） |
-| 15 | VoidMethodCall | expression.engine.ArithmeticExpression | atom | L69 | SURVIVED | 冗余 skipSpaces |
-| 16 | VoidMethodCall | expression.engine.ArithmeticExpression | atom | L72 | SURVIVED | 冗余 skipSpaces |
-| 17 | VoidMethodCall | expression.engine.ArithmeticExpression | evaluate | L24 | SURVIVED | 冗余 skipSpaces |
-| 18 | VoidMethodCall | expression.engine.ArithmeticExpression | sum | L34 | SURVIVED | PIT 插桩残留（同型 L48 已杀） |
-| 19 | RemoveConditional_EQUAL_ELSE | expression.engine.ArithmeticExpression | unary | L59 | SURVIVED | PIT 插桩残留（"  -5" 断言已覆盖） |
-| 20 | MathMutator | expression.engine.CumulativeCalculation | formatStr | L95 | SURVIVED | 仅 StringBuilder 容量 |
-| 21 | RemoveConditional_EQUAL_ELSE | expression.engine.NumberCalculation | check | L98 | SURVIVED | L110 冗余承接 |
-| 22 | RemoveConditional_EQUAL_ELSE | progress.service.ExpressionExamProgressService | evaluate | L25 | SURVIVED | PIT 插桩残留（null/blank 断言已覆盖） |
-| 23 | RemoveConditional_EQUAL_ELSE | expression.engine.BooleanCalculation2 | calculation | L59 | SURVIVED | 内层仍格式化 |
-| 24 | RemoveConditional_EQUAL_ELSE | expression.engine.BooleanCalculation2 | calculation | L74 | SURVIVED | null 必抛 AbnormalOperation |
-| 25 | NullReturnVals | expression.engine.BooleanCalculation2 | calculation | L75 | NO_COVERAGE | return 不可达 |
-| 26 | NullReturnVals | expression.engine.BooleanCalculation2 | calculation | L81 | NO_COVERAGE | return 不可达 |
+| 10 | ConditionalsBoundary | expression.engine.PrefixExpressionOperation | check | L68 | SURVIVED | 末位必为数值 |
+| 11 | RemoveConditional_EQUAL_ELSE | expression.engine.ArithmeticExpression | atom | L87 | SURVIVED | PIT 1.15.3 插桩残留（"()" 断言 IAE 已覆盖） |
+| 12 | VoidMethodCall | expression.engine.ArithmeticExpression | atom | L69 | SURVIVED | 冗余 skipSpaces |
+| 13 | VoidMethodCall | expression.engine.ArithmeticExpression | atom | L72 | SURVIVED | 冗余 skipSpaces |
+| 14 | VoidMethodCall | expression.engine.ArithmeticExpression | evaluate | L24 | SURVIVED | 冗余 skipSpaces |
+| 15 | VoidMethodCall | expression.engine.ArithmeticExpression | sum | L34 | SURVIVED | PIT 插桩残留（同型 L48 已杀） |
+| 16 | RemoveConditional_EQUAL_ELSE | expression.engine.ArithmeticExpression | unary | L59 | SURVIVED | PIT 插桩残留（"  -5" 断言已覆盖） |
+| 17 | MathMutator | expression.engine.CumulativeCalculation | formatStr | L95 | SURVIVED | 仅 StringBuilder 容量 |
+| 18 | RemoveConditional_EQUAL_ELSE | expression.engine.NumberCalculation | check | L98 | SURVIVED | L110 冗余承接 |
+| 19 | RemoveConditional_EQUAL_ELSE | progress.service.ExpressionExamProgressService | evaluate | L25 | SURVIVED | PIT 插桩残留（null/blank 断言已覆盖） |
+| 20 | RemoveConditional_EQUAL_ELSE | expression.engine.BooleanCalculation2 | calculation | L59 | SURVIVED | 内层仍格式化 |
+| 21 | RemoveConditional_EQUAL_ELSE | expression.engine.BooleanCalculation2 | calculation | L74 | SURVIVED | null 必抛 AbnormalOperation |
+| 22 | NullReturnVals | expression.engine.BooleanCalculation2 | calculation | L75 | NO_COVERAGE | return 不可达 |
+| 23 | NullReturnVals | expression.engine.BooleanCalculation2 | calculation | L81 | NO_COVERAGE | return 不可达 |
 
 ## 5. 命令与退出码汇总
 | 命令 | 退出码 |
@@ -82,9 +79,9 @@
 
 ## 6. 交付物
 - ZIP: deliverables\online-math-expression-grading\2026-11-01\online-math-expression-grading_1793511951523.zip
-- 大小: 919,075 字节（0.88 MB，<20MB）
-- ZIP SHA-256: C2D199004B276EA60E84289705BAFB29A35CEE5923AD8A8FC3CF938439928E4D
-- StudentTest.java 副本 SHA-256: 9E712F69EADF6BF6F9B10683F0CDC6DEA22D3AB665605FECAD8D360003AEB9B6（zip 内 / 工程内 / 交付副本 三处字节一致）
+- 大小: 735,942 字节（0.88 MB，<20MB）
+- ZIP SHA-256: E4E4BDE73C9A93B51A43882A098858BF4BDDD588B1797E3048534F3B084CCFEB
+- StudentTest.java 副本 SHA-256: DF7209C76A8E9F0C37E1D153949714606151C4207E6DD8A5053800585FE2BF59（zip 内 / 工程内 / 交付副本 三处字节一致）
 
 ## 7. ZIP 自检结果
 - 顶层条目: pom.xml、src、target（无多余顶层文件夹，条目路径统一为 / 分隔）

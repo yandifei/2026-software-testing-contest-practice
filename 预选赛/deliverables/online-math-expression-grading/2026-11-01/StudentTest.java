@@ -338,6 +338,11 @@ class StudentTest {
         }
 
         @Test
+        void sumOfRangeStringAdjustsEndWhenStepDoesNotDivideRange() {
+            assertEquals("3.0*2.0+3.0*(3.0-1)*3.0/2", NumberUtils.sumOfRangeString(2, 8, 3));
+        }
+
+        @Test
         void multiplyOfRangeWithEqualBoundsReturnsStartImmediately() {
             assertEquals(3.0, NumberUtils.MultiplyOfRange(3, 3, 0));
             assertEquals("3.0", NumberUtils.MultiplyOfRangeString(3, 3, 0));
@@ -942,6 +947,16 @@ class StudentTest {
             bigDecimalsR.set(p, new Stack<BigDecimal>());
             p.convertToMultiPrecisionSupported();
             assertFalse(p.isBigDecimal());
+        }
+
+        @Test
+        void convertToMultiPrecisionAfterCloseStillShortCircuits() {
+            PrefixExpression p = PrefixExpression.compile("1+2", "closeConvertName");
+            p.convertToMultiPrecisionSupported();
+            assertTrue(p.isBigDecimal());
+            assertEquals(3.0, (Double) p.calculationCache(false).getResult());
+            assertFalse(p.isAvailable());
+            assertDoesNotThrow(p::convertToMultiPrecisionSupported);
         }
 
         @Test
@@ -4026,6 +4041,23 @@ class StudentTest {
             assertFalse((Boolean) noAcademicBlocker.invoke(service(), List.of("INSTRUCTOR_APPROVAL_REQUIRED")));
             assertTrue((Boolean) noAcademicBlocker.invoke(service(), List.of("OVERALL_PROGRESS_BELOW_REQUIRED")));
         }
+
+        @Test
+        void reflectionExercisesArticleEarnedWeightOverflowBranch() throws Exception {
+            Method assessLesson = LearningProgressService.class.getDeclaredMethod("assessLesson",
+                    LessonProgress.class, int.class, List.class);
+            assessLesson.setAccessible(true);
+            LessonProgress huge = lesson("a-max", LessonType.ARTICLE, false, 0, Integer.MAX_VALUE, 0, 0, 0,
+                    false, false, false, 0, 0, true);
+            Object assessment = assessLesson.invoke(service(), huge, 0, new ArrayList<String>());
+            Method earnedWeight = assessment.getClass().getDeclaredMethod("earnedWeight");
+            earnedWeight.setAccessible(true);
+            assertEquals(10, earnedWeight.invoke(assessment));
+            Method complete = assessment.getClass().getDeclaredMethod("complete");
+            complete.setAccessible(true);
+            assertEquals(true, complete.invoke(assessment));
+        }
+
 
         @Test
         void validateRejectsBlankStudentAndCourse() {
