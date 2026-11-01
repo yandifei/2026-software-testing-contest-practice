@@ -42,3 +42,45 @@ Research 原始 POM/源码全部 15 文件保持基线；原插件完整运行�
 Credit 白盒复核确认：TypeChecker 的局部变量赋非 null 后必立即 break；Validator 正常返回前已排除 false。这一不可达分支和这一等价变异就足以阻止原始双 100%。字段反射无法打开这两处局部控制流，也无法区分恒为 true 的返回值。
 
 整体“双题分支和变异均 100%”仍未达标。不可把 Research 分支 100% 写成整个任务达标；也不把更新技能、交付阶段成果或推送 GitHub 等同于原始指标目标完成。
+
+## 本地白盒实验记录（2026-11-01，corporate-card-expense-approval）
+
+公开接口版与白盒版同存一个 StudentTest.java，白盒测试独立成段并在文件头注明分区。白盒手段与收益：
+
+| 手段 | 触达目标 | 收益 |
+| --- | --- | --- |
+| Mockito mock record（ExpenseClaim/ExpenseItem） | 构造器禁止的状态（billable+空成本中心、MEAL+人数） | 2 分支 + 2 变异 |
+| 反射调用包私有 LuhnValidator.algorithmCheck | 负数数位在翻倍位的分支 | 1 变异 |
+| mock 枚举常量（WorkflowState） | ensureActive 非活跃检查 | 1 分支 + 2 变异 |
+| mockConstruction（MasterCard/Maestro 构造器） | TypeChecker 被遮蔽的 DinersClub/Verve return | 2 分支 + 4 变异 |
+
+边界经验：
+
+- 白盒杀死按"环境可达"与"真实输入可达"分开标注；mockConstruction 属于环境可达，官方参考文档计入其杀死数，证明未超出"仅修改测试代码"的边界；但报告不应把它包装成真实链行为。
+- 反射访问包私有类时，构造器、方法都要 setAccessible（公开方法因声明类包私有也会被 checkAccess 拒绝）。
+- mock 枚举不需要任何 stub，只取引用不等即可（`state != PENDING && state != IN_PROGRESS` 走真实比较）。
+- 手工模拟变异做字节码实验时，替换跳转前必须 pop 操作数（EQUAL_ELSE=pop+goto，EQUAL_IF=纯移除），否则栈帧不一致直接 VerifyError。
+
+## 本地白盒实验记录（2026-11-01，online-math-expression-grading）
+
+公开接口版与白盒版同存一个 StudentTest.java，白盒测试独立成段并在文件头注明分区与完整清单。新增手段与收益（相对公开接口版 895/992）：
+
+| 手段 | 触达目标 | 收益 |
+| --- | --- | --- |
+| 反射直调私有 scoreAnswer/scoreMultipleChoice/scoreEssay/scoreProgramming/calculateSections/validate | 公开 API 不可达的私有分支与返回 scale | 6 分支 + 约 20 变异 |
+| record 构造态畸形值（passed>total、rubric=125、completionPercent=MAX） | clamp true 边、三元溢出分支 | 1 分支 + 3 变异 |
+| 对象同一性断言（assertSame/assertNotSame + 反射取 ZERO 字段） | 边界变异的新对象分配差异 | 4 变异 |
+| MockedStatic 桩 NumberUtils.ComparisonOperation | null 操作数 return 分支（原必抛） | 3 变异（含 2 个 NO_COVERAGE） |
+| 反射直调 atom/unary（"  12.50"、"-5"） | 上游归一化遮蔽的 skipSpaces/负号分支 | 3 变异 |
+| 下降区间容量 int 溢出（NegativeArraySizeException） | formatStr "容量不可观察" 变异 | 1 变异 |
+| 线程超时包装（daemon + 1s，< PIT 3s） | 死循环变异转确定性失败 | 1 变异；自增指令类变异无覆盖归属，仍 TIMED_OUT |
+| @BeforeEach 反射清空静态注册表 | fresh-path null-return 变异（fork 复用遮蔽） | 3 变异 |
+
+边界经验：
+
+- 等价判定必须按"每个私有方法的每个入口"分别攻击；公开链的上游归一化（unary 预消费空白、money setScale(2)）不构成私有入口下的等价。
+- "值相等"与"对象相等"是两回事：money()/setScale 对 scale 已正确的对象返回 this，身份差异可传播到返回值；必要时反射取私有静态常量做 assertSame 参照。
+- PIT 覆盖归属只认测试主线程；线程包装内的执行不归属测试，自增指令类变异因此无测试可跑。包装等待上限必须小于 PIT timeoutConstant（默认 3000ms）。
+- 静态注册表/缓存/单例必须 @BeforeEach 隔离，否则 fork 复用让前序变异运行的状态遮蔽 fresh-path 变异。
+- 禁止层再确认：Unsafe 伪造枚举 ordinal 属伪造执行痕迹（类型系统中不存在的对象），与改报告、缩分母同级禁止；枚举 switch 的 null 语义先 javap 验证（ordinal() 翻译下 null→NPE，default 不可达就写路径证明）。
+- 官方参考缺口文档口径：分母含全部变异、分子只计 KILLED、TIMED_OUT 为 0——严格口径下能转 KILLED 的 TIMED_OUT 必须转。
