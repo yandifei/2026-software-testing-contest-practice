@@ -1,0 +1,1433 @@
+{
+  "schema_version": 1,
+  "audit_started_at": "2026-11-15T23:54:56.489166+08:00",
+  "audit_timezone": "Asia/Shanghai",
+  "audit_method": "read existing files only; no Maven, tests, browser, report repair or source modification",
+  "scope": "GPT initial/rewrite and deepseek/glm comparison artifacts for the 2026-11-15 provincial contest",
+  "interpretation": {
+    "KILLED": "Count only mutations whose status attribute is KILLED. TIMED_OUT and other detected statuses remain separate.",
+    "junit": "Select TEST-net.mooctest.StudentTest*.xml; aggregate the tests/failures/errors/skipped root attributes. Independently inventory excluded TEST-*.xml. A count is an execution count, not necessarily a count of @Test annotations.",
+    "file_collection_hash": "manifest_sha256 = SHA-256 of UTF-8 concatenation of sorted POSIX relative paths + TAB + each file content SHA-256 + LF. This is a collection fingerprint, not an individual file hash. Production-file hashes and per-suite JUnit hashes are intentionally aggregated.",
+    "mtime": "Filesystem modification times are observations, not trusted run timestamps or cryptographic build provenance.",
+    "build_binding": "No audited artifact provides a verified run manifest binding test source, production source, POM, compiled classes, JUnit, JaCoCo and PIT to one invocation. Content equality and plausible timestamp ordering do not establish that binding.",
+    "platform_score": "Local artifacts only. No official score or successful upload is established by this evidence."
+  },
+  "baselines": {
+    "card-approval": {
+      "manifest_file": {
+        "path": "B:\\软件测试大赛\\省赛\\GPT\\card-approval-baseline.json",
+        "sha256": "a1a90d5b13dbff94508dbf3a2e8003454dc3f64fcce7743ec24b1e5eb7fbb65f",
+        "bytes": 14001,
+        "modified_at": "2026-11-15T14:03:33.752038+08:00",
+        "source_type": "raw_file"
+      },
+      "original_project_path": "B:\\软件测试大赛\\省赛\\原始项目\\card-approval",
+      "expected_entries": 104,
+      "original_entries": 104,
+      "baseline_equals_original": true,
+      "original_source_and_pom": {
+        "root": "B:\\软件测试大赛\\省赛\\原始项目\\card-approval",
+        "file_count": 104,
+        "total_bytes": 197255,
+        "manifest_sha256": "988a501135becb6e38d90f765145d6f0fc4b4081a17bfe6040d32dbb127a0e38",
+        "modified_at_range": [
+          "2026-07-23T13:00:30+08:00",
+          "2026-11-14T22:06:28+08:00"
+        ],
+        "source_type": "raw_file_collection"
+      }
+    },
+    "math-assessment": {
+      "manifest_file": {
+        "path": "B:\\软件测试大赛\\省赛\\GPT\\math-assessment-baseline.json",
+        "sha256": "4e0163d89e502ea0f58815086b7bd04681a74f45561c0675961dd192d58f4577",
+        "bytes": 19806,
+        "modified_at": "2026-11-15T14:03:33.794707+08:00",
+        "source_type": "raw_file"
+      },
+      "original_project_path": "B:\\软件测试大赛\\省赛\\原始项目\\math-assessment",
+      "expected_entries": 135,
+      "original_entries": 135,
+      "baseline_equals_original": true,
+      "original_source_and_pom": {
+        "root": "B:\\软件测试大赛\\省赛\\原始项目\\math-assessment",
+        "file_count": 135,
+        "total_bytes": 521812,
+        "manifest_sha256": "c9bf671641da50fbb260e9b04babb9851c26f66e4d4fad2334a9b43d155eecc4",
+        "modified_at_range": [
+          "2026-07-23T12:04:18+08:00",
+          "2026-11-14T22:06:28+08:00"
+        ],
+        "source_type": "raw_file_collection"
+      }
+    }
+  },
+  "projects": [
+    {
+      "id": "GPT/card-approval",
+      "path": "B:\\软件测试大赛\\省赛\\GPT\\card-approval",
+      "stage": "initial",
+      "test_file": {
+        "path": "B:\\软件测试大赛\\省赛\\GPT\\card-approval\\src\\test\\java\\net\\mooctest\\StudentTest.java",
+        "sha256": "694745fcec87c02ddb4b9c66f18e5c7d99d0598cc1f067b8ca904c12a43ebfd5",
+        "bytes": 236229,
+        "modified_at": "2026-11-15T14:09:31.815718+08:00",
+        "source_type": "raw_file",
+        "physical_lines": 3594
+      },
+      "source_main": {
+        "root": "B:\\软件测试大赛\\省赛\\GPT\\card-approval\\src\\main",
+        "file_count": 103,
+        "total_bytes": 189592,
+        "manifest_sha256": "f5d6e51f5c8131f91074dcdd4c382ab615018b2e872c3d9eab5597c500c3fb8d",
+        "modified_at_range": [
+          "2026-11-15T14:01:03.366875+08:00",
+          "2026-11-15T14:01:03.398733+08:00"
+        ],
+        "source_type": "raw_file_collection"
+      },
+      "pom": {
+        "path": "B:\\软件测试大赛\\省赛\\GPT\\card-approval\\pom.xml",
+        "sha256": "b93789cb0b1b7abe1e0b039e386e63dcff6a6c8ed66aed66915062f6a5aeb268",
+        "bytes": 7663,
+        "modified_at": "2026-11-15T14:01:03.365875+08:00",
+        "source_type": "raw_file"
+      },
+      "source_baseline": {
+        "reference": "card-approval",
+        "entries": 104,
+        "matches_baseline_and_original": true,
+        "differing_entries": []
+      },
+      "rules_file": {
+        "path": "B:\\软件测试大赛\\省赛\\GPT\\card-approval\\开发者测试比赛要求.md",
+        "sha256": "f963290a884043c85160419e340473739983272ce20505e44197a47888fb3f7f",
+        "bytes": 2898,
+        "modified_at": "2026-11-15T14:01:03.573268+08:00",
+        "source_type": "raw_file"
+      },
+      "junit": {
+        "selected_glob": "TEST-net.mooctest.StudentTest*.xml",
+        "selected": {
+          "root": "B:\\软件测试大赛\\省赛\\GPT\\card-approval\\target\\surefire-reports",
+          "file_count": 1,
+          "total_bytes": 39905,
+          "manifest_sha256": "a50f9780828325170e1ae4b13d63382e203743c8a5cbbb0b8065cb044f202d92",
+          "modified_at_range": [
+            "2026-11-15T14:09:36.439684+08:00",
+            "2026-11-15T14:09:36.439684+08:00"
+          ],
+          "source_type": "raw_file_collection",
+          "strict_xml": true,
+          "totals": {
+            "tests": 245,
+            "failures": 0,
+            "errors": 0,
+            "skipped": 0
+          },
+          "failures": []
+        },
+        "excluded": {
+          "file_count": 0
+        },
+        "fresh_reexecution_performed": false
+      },
+      "jacoco": {
+        "path": "B:\\软件测试大赛\\省赛\\GPT\\card-approval\\target\\site\\jacoco\\jacoco.xml",
+        "sha256": "2a53155814c0413680f55c4e2bc95d66073fbd5a0f74be694e6f41bf2e10c217",
+        "bytes": 264894,
+        "modified_at": "2026-11-15T14:09:36.815233+08:00",
+        "source_type": "raw_file",
+        "strict_xml": true,
+        "counters": {
+          "INSTRUCTION": {
+            "covered": 8051,
+            "missed": 3334,
+            "total": 11385
+          },
+          "BRANCH": {
+            "covered": 1411,
+            "missed": 602,
+            "total": 2013
+          },
+          "LINE": {
+            "covered": 1679,
+            "missed": 685,
+            "total": 2364
+          },
+          "COMPLEXITY": {
+            "covered": 914,
+            "missed": 402,
+            "total": 1316
+          },
+          "METHOD": {
+            "covered": 190,
+            "missed": 85,
+            "total": 275
+          },
+          "CLASS": {
+            "covered": 68,
+            "missed": 29,
+            "total": 97
+          }
+        }
+      },
+      "pit": {
+        "path": "B:\\软件测试大赛\\省赛\\GPT\\card-approval\\target\\pit-reports\\mutations.xml",
+        "sha256": "01c471c3b70120c012c50be47cabdd364a66ede2cfc01cecf3f7a27adac5cb6b",
+        "bytes": 966430,
+        "modified_at": "2026-11-15T14:44:13.307291+08:00",
+        "source_type": "raw_file",
+        "expected_total": 1320,
+        "closing_root_count": 1,
+        "strict_xml": true,
+        "total": 1320,
+        "statuses": {
+          "KILLED": 884,
+          "NO_COVERAGE": 394,
+          "SURVIVED": 42
+        },
+        "detected_attribute": {
+          "false": 436,
+          "true": 884
+        },
+        "unique_identity_count": 1320,
+        "complete_expected_mutant_set": true
+      },
+      "pit_html": {
+        "path": "B:\\软件测试大赛\\省赛\\GPT\\card-approval\\target\\pit-reports\\index.html",
+        "sha256": "4e051fa55a0cb74a46358cc76531e34a9e8ba3ae862b09800ca924d23b475ffb",
+        "bytes": 8394,
+        "modified_at": "2026-11-15T14:44:13.344946+08:00",
+        "source_type": "raw_file"
+      },
+      "historical_logs": [
+        {
+          "path": "B:\\软件测试大赛\\省赛\\GPT\\card-first.log",
+          "sha256": "f3d4fe04e5382d2953b276c560901ebb92e3d1dbd2a423ee440d51743890b126",
+          "bytes": 12048,
+          "modified_at": "2026-11-15T14:10:50.045314+08:00",
+          "source_type": "raw_file",
+          "summary_lines": [
+            ">> Generated 1320 mutations Killed 886 (67%)",
+            ">> Mutations with no coverage 394. Test strength 96%",
+            "[INFO] BUILD SUCCESS",
+            "[INFO] Finished at: 2026-11-15T14:10:50+08:00"
+          ],
+          "junit_summary_lines": [
+            "[INFO] Tests run: 245, Failures: 0, Errors: 0, Skipped: 0"
+          ],
+          "binding": "Historical evidence; not assumed to be the run that produced the current XML."
+        }
+      ],
+      "build_provenance_binding": "insufficient: no verified run manifest connecting current source/compiled artifacts and all current reports",
+      "notes": [
+        "Historical card-first.log reports 886 killed, while the current strict XML contains 884 KILLED. They are not bound to the same invocation."
+      ]
+    },
+    {
+      "id": "GPT/math-assessment",
+      "path": "B:\\软件测试大赛\\省赛\\GPT\\math-assessment",
+      "stage": "initial",
+      "test_file": {
+        "path": "B:\\软件测试大赛\\省赛\\GPT\\math-assessment\\src\\test\\java\\net\\mooctest\\StudentTest.java",
+        "sha256": "66afb2e6dd8e8a8ed657ce9e906082babbe0d1b223820e91f4d3c67a35c9201b",
+        "bytes": 283975,
+        "modified_at": "2026-11-15T14:10:20.380867+08:00",
+        "source_type": "raw_file",
+        "physical_lines": 4516
+      },
+      "source_main": {
+        "root": "B:\\软件测试大赛\\省赛\\GPT\\math-assessment\\src\\main",
+        "file_count": 134,
+        "total_bytes": 513013,
+        "manifest_sha256": "c0102fcf1114d5661e74b37bab6957d9d05df440c3dade74a6d1e7a4fe31e582",
+        "modified_at_range": [
+          "2026-11-15T14:01:03.711666+08:00",
+          "2026-11-15T14:01:03.761480+08:00"
+        ],
+        "source_type": "raw_file_collection"
+      },
+      "pom": {
+        "path": "B:\\软件测试大赛\\省赛\\GPT\\math-assessment\\pom.xml",
+        "sha256": "9a1aeccf19c9410911dd594d45f75ab80d9f7bec294c8baeac04570d490cccae",
+        "bytes": 8799,
+        "modified_at": "2026-11-15T14:01:03.710666+08:00",
+        "source_type": "raw_file"
+      },
+      "source_baseline": {
+        "reference": "math-assessment",
+        "entries": 135,
+        "matches_baseline_and_original": true,
+        "differing_entries": []
+      },
+      "rules_file": {
+        "path": "B:\\软件测试大赛\\省赛\\GPT\\math-assessment\\开发者测试比赛要求.md",
+        "sha256": "5d6558a46f9fe8738893ca1f04454e4470feab6cc608517e77e23c0c5d5b4656",
+        "bytes": 2952,
+        "modified_at": "2026-11-15T14:01:04.102200+08:00",
+        "source_type": "raw_file"
+      },
+      "junit": {
+        "selected_glob": "TEST-net.mooctest.StudentTest*.xml",
+        "selected": {
+          "root": "B:\\软件测试大赛\\省赛\\GPT\\math-assessment\\target\\surefire-reports",
+          "file_count": 17,
+          "total_bytes": 436246,
+          "manifest_sha256": "d1994ff8ae28181aa3031855e609ba40f59a5ac60fae3165401e5380a28f976d",
+          "modified_at_range": [
+            "2026-11-15T14:10:30.818459+08:00",
+            "2026-11-15T14:10:31.260750+08:00"
+          ],
+          "source_type": "raw_file_collection",
+          "strict_xml": true,
+          "totals": {
+            "tests": 350,
+            "failures": 0,
+            "errors": 0,
+            "skipped": 0
+          },
+          "failures": []
+        },
+        "excluded": {
+          "file_count": 0
+        },
+        "fresh_reexecution_performed": false
+      },
+      "jacoco": {
+        "path": "B:\\软件测试大赛\\省赛\\GPT\\math-assessment\\target\\site\\jacoco\\jacoco.xml",
+        "sha256": "2defd19c4333ceb01152ff5c7d86965da047982d10273e6e654116a424d1afd6",
+        "bytes": 517009,
+        "modified_at": "2026-11-15T14:10:32.002665+08:00",
+        "source_type": "raw_file",
+        "strict_xml": true,
+        "counters": {
+          "INSTRUCTION": {
+            "covered": 14504,
+            "missed": 5430,
+            "total": 19934
+          },
+          "BRANCH": {
+            "covered": 2122,
+            "missed": 537,
+            "total": 2659
+          },
+          "LINE": {
+            "covered": 2943,
+            "missed": 1107,
+            "total": 4050
+          },
+          "COMPLEXITY": {
+            "covered": 1467,
+            "missed": 615,
+            "total": 2082
+          },
+          "METHOD": {
+            "covered": 431,
+            "missed": 294,
+            "total": 725
+          },
+          "CLASS": {
+            "covered": 113,
+            "missed": 58,
+            "total": 171
+          }
+        }
+      },
+      "pit": {
+        "path": "B:\\软件测试大赛\\省赛\\GPT\\math-assessment\\target\\pit-reports\\mutations.xml",
+        "sha256": "c6dfb0aab73fbfa851857f49e002fb75373797c4baee52f07b579c0aa64cd612",
+        "bytes": 1630208,
+        "modified_at": "2026-11-15T14:46:25.287384+08:00",
+        "source_type": "raw_file",
+        "expected_total": 2528,
+        "closing_root_count": 0,
+        "strict_xml": false,
+        "parse_error": "unclosed token: line 2090, column 457",
+        "complete_expected_mutant_set": false,
+        "statuses": null
+      },
+      "pit_html": {
+        "path": "B:\\软件测试大赛\\省赛\\GPT\\math-assessment\\target\\pit-reports\\index.html",
+        "sha256": "8bc81bb4d28f5c5b35559f73ba33612a5d25fdc9548c248a206c16fded63eddc",
+        "bytes": 13483,
+        "modified_at": "2026-11-15T14:17:55.672587+08:00",
+        "source_type": "raw_file"
+      },
+      "historical_logs": [
+        {
+          "path": "B:\\软件测试大赛\\省赛\\GPT\\math-round1.log",
+          "sha256": "93fec39db18e8e316cd9519232609f042e6e7c50bcc58f4eb043c8d7ac9c3799",
+          "bytes": 17944,
+          "modified_at": "2026-11-15T14:15:58.925729+08:00",
+          "source_type": "raw_file",
+          "summary_lines": [
+            ">> Generated 2528 mutations Killed 1722 (68%)",
+            ">> Mutations with no coverage 613. Test strength 90%",
+            "[INFO] BUILD SUCCESS",
+            "[INFO] Finished at: 2026-11-15T14:15:58+08:00"
+          ],
+          "junit_summary_lines": [
+            "[INFO] Tests run: 350, Failures: 0, Errors: 0, Skipped: 0"
+          ],
+          "binding": "Historical evidence; not assumed to be the run that produced the current XML."
+        }
+      ],
+      "build_provenance_binding": "insufficient: no verified run manifest connecting current source/compiled artifacts and all current reports",
+      "notes": [
+        "Current PIT XML is truncated; no KILLED total accepted from this file.",
+        "Historical log/HTML 1722 includes detected timeout outcomes in the archived diagnostic document; see damaged_archive_diagnostic."
+      ]
+    },
+    {
+      "id": "GPT/rewrite/card-approval",
+      "path": "B:\\软件测试大赛\\省赛\\GPT\\rewrite\\card-approval",
+      "stage": "rewrite",
+      "test_file": {
+        "path": "B:\\软件测试大赛\\省赛\\GPT\\rewrite\\card-approval\\src\\test\\java\\net\\mooctest\\StudentTest.java",
+        "sha256": "1d814696ef981ad5d49a80428aa49931e470a16379292161cc4b1aa8bbb9f70a",
+        "bytes": 98735,
+        "modified_at": "2026-11-15T14:34:03.314698+08:00",
+        "source_type": "raw_file",
+        "physical_lines": 652
+      },
+      "source_main": {
+        "root": "B:\\软件测试大赛\\省赛\\GPT\\rewrite\\card-approval\\src\\main",
+        "file_count": 103,
+        "total_bytes": 189592,
+        "manifest_sha256": "f5d6e51f5c8131f91074dcdd4c382ab615018b2e872c3d9eab5597c500c3fb8d",
+        "modified_at_range": [
+          "2026-07-23T13:00:30+08:00",
+          "2026-11-13T17:35:00+08:00"
+        ],
+        "source_type": "raw_file_collection"
+      },
+      "pom": {
+        "path": "B:\\软件测试大赛\\省赛\\GPT\\rewrite\\card-approval\\pom.xml",
+        "sha256": "b93789cb0b1b7abe1e0b039e386e63dcff6a6c8ed66aed66915062f6a5aeb268",
+        "bytes": 7663,
+        "modified_at": "2026-11-14T22:06:28+08:00",
+        "source_type": "raw_file"
+      },
+      "source_baseline": {
+        "reference": "card-approval",
+        "entries": 104,
+        "matches_baseline_and_original": true,
+        "differing_entries": []
+      },
+      "rules_file": {
+        "path": "B:\\软件测试大赛\\省赛\\GPT\\rewrite\\card-approval\\开发者测试比赛要求.md",
+        "sha256": "f963290a884043c85160419e340473739983272ce20505e44197a47888fb3f7f",
+        "bytes": 2898,
+        "modified_at": "2026-11-14T22:06:28+08:00",
+        "source_type": "raw_file"
+      },
+      "junit": {
+        "selected_glob": "TEST-net.mooctest.StudentTest*.xml",
+        "selected": {
+          "root": "B:\\软件测试大赛\\省赛\\GPT\\rewrite\\card-approval\\target\\surefire-reports",
+          "file_count": 1,
+          "total_bytes": 13908,
+          "manifest_sha256": "20974516deb7b41f8dd62e26996056a552b167b69096faf9617dbdd96e4fc99a",
+          "modified_at_range": [
+            "2026-11-15T14:34:22.396216+08:00",
+            "2026-11-15T14:34:22.396216+08:00"
+          ],
+          "source_type": "raw_file_collection",
+          "strict_xml": true,
+          "totals": {
+            "tests": 32,
+            "failures": 0,
+            "errors": 0,
+            "skipped": 0
+          },
+          "failures": []
+        },
+        "excluded": {
+          "file_count": 0
+        },
+        "fresh_reexecution_performed": false
+      },
+      "jacoco": {
+        "path": "B:\\软件测试大赛\\省赛\\GPT\\rewrite\\card-approval\\target\\site\\jacoco\\jacoco.xml",
+        "sha256": "8293534e972f9aee7d61213e9cf9c130119ef9a3bc5455342db2cbf16ce19ead",
+        "bytes": 264907,
+        "modified_at": "2026-11-15T14:34:23.115008+08:00",
+        "source_type": "raw_file",
+        "strict_xml": true,
+        "counters": {
+          "INSTRUCTION": {
+            "covered": 10358,
+            "missed": 1027,
+            "total": 11385
+          },
+          "BRANCH": {
+            "covered": 1797,
+            "missed": 216,
+            "total": 2013
+          },
+          "LINE": {
+            "covered": 2160,
+            "missed": 204,
+            "total": 2364
+          },
+          "COMPLEXITY": {
+            "covered": 1147,
+            "missed": 169,
+            "total": 1316
+          },
+          "METHOD": {
+            "covered": 252,
+            "missed": 23,
+            "total": 275
+          },
+          "CLASS": {
+            "covered": 95,
+            "missed": 2,
+            "total": 97
+          }
+        }
+      },
+      "pit": {
+        "path": "B:\\软件测试大赛\\省赛\\GPT\\rewrite\\card-approval\\target\\pit-reports\\mutations.xml",
+        "sha256": "327a4392392fd8bc8dbac64ac6fcab0633ca952710cc4610582e7902e3080441",
+        "bytes": 994187,
+        "modified_at": "2026-11-15T16:28:19.889646+08:00",
+        "source_type": "raw_file",
+        "expected_total": 1320,
+        "closing_root_count": 1,
+        "strict_xml": true,
+        "total": 1320,
+        "statuses": {
+          "KILLED": 1123,
+          "NO_COVERAGE": 107,
+          "SURVIVED": 90
+        },
+        "detected_attribute": {
+          "false": 197,
+          "true": 1123
+        },
+        "unique_identity_count": 1320,
+        "complete_expected_mutant_set": true
+      },
+      "pit_html": {
+        "path": "B:\\软件测试大赛\\省赛\\GPT\\rewrite\\card-approval\\target\\pit-reports\\index.html",
+        "sha256": "c2e7adbe031c641758069cfd6dd7c60a40895bda67f258e08ffc5270e5c874ae",
+        "bytes": 8436,
+        "modified_at": "2026-11-15T16:28:19.935845+08:00",
+        "source_type": "raw_file"
+      },
+      "historical_logs": [
+        {
+          "path": "B:\\软件测试大赛\\省赛\\GPT\\rewrite\\card-round1.log",
+          "sha256": "c18c2732a8b3b391153b3b5d6fef01ec80ef84a261bdbabe1010a3ab884793dc",
+          "bytes": 11300,
+          "modified_at": "2026-11-15T14:36:09.828490+08:00",
+          "source_type": "raw_file",
+          "summary_lines": [
+            ">> Generated 1320 mutations Killed 1123 (85%)",
+            ">> Mutations with no coverage 107. Test strength 93%",
+            "[INFO] BUILD SUCCESS",
+            "[INFO] Finished at: 2026-11-15T14:36:09+08:00"
+          ],
+          "junit_summary_lines": [
+            "[INFO] Tests run: 32, Failures: 0, Errors: 0, Skipped: 0"
+          ],
+          "binding": "Historical evidence; not assumed to be the run that produced the current XML."
+        },
+        {
+          "path": "B:\\软件测试大赛\\省赛\\GPT\\rewrite\\card-new-test.log",
+          "sha256": "6f0dcc5d0cbc9003474bd433e99f822cd668a761c76c43f548e98fdc7068e78f",
+          "bytes": 2874,
+          "modified_at": "2026-11-15T14:34:08.885258+08:00",
+          "source_type": "raw_file",
+          "summary_lines": [
+            "[INFO] BUILD SUCCESS",
+            "[INFO] Finished at: 2026-11-15T14:34:08+08:00"
+          ],
+          "junit_summary_lines": [
+            "[INFO] Tests run: 32, Failures: 0, Errors: 0, Skipped: 0"
+          ],
+          "binding": "Historical evidence; not assumed to be the run that produced the current XML."
+        }
+      ],
+      "build_provenance_binding": "insufficient: no verified run manifest connecting current source/compiled artifacts and all current reports"
+    },
+    {
+      "id": "GPT/rewrite/math-assessment",
+      "path": "B:\\软件测试大赛\\省赛\\GPT\\rewrite\\math-assessment",
+      "stage": "rewrite improved to 506 executions",
+      "test_file": {
+        "path": "B:\\软件测试大赛\\省赛\\GPT\\rewrite\\math-assessment\\src\\test\\java\\net\\mooctest\\StudentTest.java",
+        "sha256": "cbfdc0b6f82d04411d0b29896ade19ee068d843e3a7513ad146aed6628ca7d5f",
+        "bytes": 504397,
+        "modified_at": "2026-11-15T15:23:42.575908+08:00",
+        "source_type": "raw_file",
+        "physical_lines": 7573
+      },
+      "source_main": {
+        "root": "B:\\软件测试大赛\\省赛\\GPT\\rewrite\\math-assessment\\src\\main",
+        "file_count": 134,
+        "total_bytes": 513013,
+        "manifest_sha256": "c0102fcf1114d5661e74b37bab6957d9d05df440c3dade74a6d1e7a4fe31e582",
+        "modified_at_range": [
+          "2026-07-23T12:04:18+08:00",
+          "2026-11-14T22:06:28+08:00"
+        ],
+        "source_type": "raw_file_collection"
+      },
+      "pom": {
+        "path": "B:\\软件测试大赛\\省赛\\GPT\\rewrite\\math-assessment\\pom.xml",
+        "sha256": "9a1aeccf19c9410911dd594d45f75ab80d9f7bec294c8baeac04570d490cccae",
+        "bytes": 8799,
+        "modified_at": "2026-11-14T22:06:28+08:00",
+        "source_type": "raw_file"
+      },
+      "source_baseline": {
+        "reference": "math-assessment",
+        "entries": 135,
+        "matches_baseline_and_original": true,
+        "differing_entries": []
+      },
+      "rules_file": {
+        "path": "B:\\软件测试大赛\\省赛\\GPT\\rewrite\\math-assessment\\开发者测试比赛要求.md",
+        "sha256": "5d6558a46f9fe8738893ca1f04454e4470feab6cc608517e77e23c0c5d5b4656",
+        "bytes": 2952,
+        "modified_at": "2026-11-14T22:06:28+08:00",
+        "source_type": "raw_file"
+      },
+      "junit": {
+        "selected_glob": "TEST-net.mooctest.StudentTest*.xml",
+        "selected": {
+          "root": "B:\\软件测试大赛\\省赛\\GPT\\rewrite\\math-assessment\\target\\surefire-reports",
+          "file_count": 17,
+          "total_bytes": 440366,
+          "manifest_sha256": "650d514f12a3bee9ff2b557c842f85de27304e2d3ad3d8553afeb60e5d56b620",
+          "modified_at_range": [
+            "2026-11-15T15:43:54.678643+08:00",
+            "2026-11-15T15:43:55.105573+08:00"
+          ],
+          "source_type": "raw_file_collection",
+          "strict_xml": true,
+          "totals": {
+            "tests": 506,
+            "failures": 0,
+            "errors": 0,
+            "skipped": 0
+          },
+          "failures": []
+        },
+        "excluded": {
+          "file_count": 0
+        },
+        "fresh_reexecution_performed": false
+      },
+      "jacoco": {
+        "path": "B:\\软件测试大赛\\省赛\\GPT\\rewrite\\math-assessment\\target\\site\\jacoco\\jacoco.xml",
+        "sha256": "ad3b24f1b2b5bcf2487f1ab4c39f3d551f9aa4d33af175e0880d7534796bf487",
+        "bytes": 517379,
+        "modified_at": "2026-11-15T15:43:56.148786+08:00",
+        "source_type": "raw_file",
+        "strict_xml": true,
+        "counters": {
+          "INSTRUCTION": {
+            "covered": 19362,
+            "missed": 572,
+            "total": 19934
+          },
+          "BRANCH": {
+            "covered": 2551,
+            "missed": 108,
+            "total": 2659
+          },
+          "LINE": {
+            "covered": 3928,
+            "missed": 122,
+            "total": 4050
+          },
+          "COMPLEXITY": {
+            "covered": 1947,
+            "missed": 135,
+            "total": 2082
+          },
+          "METHOD": {
+            "covered": 693,
+            "missed": 32,
+            "total": 725
+          },
+          "CLASS": {
+            "covered": 170,
+            "missed": 1,
+            "total": 171
+          }
+        }
+      },
+      "pit": {
+        "path": "B:\\软件测试大赛\\省赛\\GPT\\rewrite\\math-assessment\\target\\pit-reports\\mutations.xml",
+        "sha256": "ed11193a70cfdd7d62c9009e556fef4b9db37d57ad08fb15c21b7771595a5b9f",
+        "bytes": 2050351,
+        "modified_at": "2026-11-15T16:19:47.013567+08:00",
+        "source_type": "raw_file",
+        "expected_total": 2528,
+        "closing_root_count": 1,
+        "strict_xml": true,
+        "total": 2528,
+        "statuses": {
+          "KILLED": 2374,
+          "NO_COVERAGE": 36,
+          "SURVIVED": 114,
+          "TIMED_OUT": 4
+        },
+        "detected_attribute": {
+          "false": 150,
+          "true": 2378
+        },
+        "unique_identity_count": 2528,
+        "complete_expected_mutant_set": true
+      },
+      "pit_html": {
+        "path": "B:\\软件测试大赛\\省赛\\GPT\\rewrite\\math-assessment\\target\\pit-reports\\index.html",
+        "sha256": "89fa75d129239df48208a63dae2267803e377704019f12c5aede2f6613d23ea6",
+        "bytes": 13503,
+        "modified_at": "2026-11-15T16:19:47.063588+08:00",
+        "source_type": "raw_file"
+      },
+      "historical_logs": [
+        {
+          "path": "B:\\软件测试大赛\\省赛\\GPT\\rewrite\\math-rewrite-round1.log",
+          "sha256": "df096b8fac10f7c67b81fc77f826c2ecc12b1a12163e9599688aff7c66015bbe",
+          "bytes": 14054,
+          "modified_at": "2026-11-15T14:40:30.812112+08:00",
+          "source_type": "raw_file",
+          "summary_lines": [
+            ">> Generated 2528 mutations Killed 1725 (68%)",
+            ">> Mutations with no coverage 364. Test strength 80%",
+            "[INFO] BUILD SUCCESS",
+            "[INFO] Finished at: 2026-11-15T14:40:30+08:00"
+          ],
+          "junit_summary_lines": [
+            "[INFO] Tests run: 49, Failures: 0, Errors: 0, Skipped: 0"
+          ],
+          "binding": "Historical evidence; not assumed to be the run that produced the current XML."
+        }
+      ],
+      "build_provenance_binding": "insufficient: no verified run manifest connecting current source/compiled artifacts and all current reports",
+      "notes": [
+        "Local metrics include rule-conflicting interception tests; they do not establish a compliant competition result.",
+        "154 mutations are not KILLED: 114 SURVIVED + 36 NO_COVERAGE + 4 TIMED_OUT. The self-report counts only the first two categories as 150.",
+        "The retained 49-test log is from an earlier rewrite stage, not proof for the final 506-test reports."
+      ]
+    },
+    {
+      "id": "deepseek/card-approval",
+      "path": "B:\\软件测试大赛\\省赛\\deepseek\\card-approval",
+      "stage": "case integrated line",
+      "test_file": {
+        "path": "B:\\软件测试大赛\\省赛\\deepseek\\card-approval\\src\\test\\java\\net\\mooctest\\StudentTest.java",
+        "sha256": "73f2c2a7a5db5834572bcad4af0bc66504bf042c4d01315448ee850d8c886cdc",
+        "bytes": 476181,
+        "modified_at": "2026-11-15T16:18:14.788112+08:00",
+        "source_type": "raw_file",
+        "physical_lines": 9267
+      },
+      "source_main": {
+        "root": "B:\\软件测试大赛\\省赛\\deepseek\\card-approval\\src\\main",
+        "file_count": 103,
+        "total_bytes": 189592,
+        "manifest_sha256": "f5d6e51f5c8131f91074dcdd4c382ab615018b2e872c3d9eab5597c500c3fb8d",
+        "modified_at_range": [
+          "2026-07-23T13:00:30+08:00",
+          "2026-11-13T17:35:00+08:00"
+        ],
+        "source_type": "raw_file_collection"
+      },
+      "pom": {
+        "path": "B:\\软件测试大赛\\省赛\\deepseek\\card-approval\\pom.xml",
+        "sha256": "b93789cb0b1b7abe1e0b039e386e63dcff6a6c8ed66aed66915062f6a5aeb268",
+        "bytes": 7663,
+        "modified_at": "2026-11-14T22:06:28+08:00",
+        "source_type": "raw_file"
+      },
+      "source_baseline": {
+        "reference": "card-approval",
+        "entries": 104,
+        "matches_baseline_and_original": true,
+        "differing_entries": []
+      },
+      "rules_file": {
+        "path": "B:\\软件测试大赛\\省赛\\deepseek\\card-approval\\开发者测试比赛要求.md",
+        "sha256": "f963290a884043c85160419e340473739983272ce20505e44197a47888fb3f7f",
+        "bytes": 2898,
+        "modified_at": "2026-11-14T22:06:28+08:00",
+        "source_type": "raw_file"
+      },
+      "junit": {
+        "selected_glob": "TEST-net.mooctest.StudentTest*.xml",
+        "selected": {
+          "root": "B:\\软件测试大赛\\省赛\\deepseek\\card-approval\\target\\surefire-reports",
+          "file_count": 4,
+          "total_bytes": 65995,
+          "manifest_sha256": "6adf0bf956e1f4503380557d5e43c111cdc452562103d07a6accf106634f7cab",
+          "modified_at_range": [
+            "2026-11-15T16:18:26.781489+08:00",
+            "2026-11-15T16:18:26.929590+08:00"
+          ],
+          "source_type": "raw_file_collection",
+          "strict_xml": true,
+          "totals": {
+            "tests": 258,
+            "failures": 0,
+            "errors": 0,
+            "skipped": 0
+          },
+          "failures": []
+        },
+        "excluded": {
+          "file_count": 0
+        },
+        "fresh_reexecution_performed": false
+      },
+      "jacoco": {
+        "path": "B:\\软件测试大赛\\省赛\\deepseek\\card-approval\\target\\site\\jacoco\\jacoco.xml",
+        "sha256": "17bb155cabe7ec687d798290200a34898cc1cdd116557cb48421a02dc86c5570",
+        "bytes": 264625,
+        "modified_at": "2026-11-15T16:18:27.438251+08:00",
+        "source_type": "raw_file",
+        "strict_xml": true,
+        "counters": {
+          "INSTRUCTION": {
+            "covered": 11372,
+            "missed": 13,
+            "total": 11385
+          },
+          "BRANCH": {
+            "covered": 2003,
+            "missed": 10,
+            "total": 2013
+          },
+          "LINE": {
+            "covered": 2360,
+            "missed": 4,
+            "total": 2364
+          },
+          "COMPLEXITY": {
+            "covered": 1307,
+            "missed": 9,
+            "total": 1316
+          },
+          "METHOD": {
+            "covered": 275,
+            "missed": 0,
+            "total": 275
+          },
+          "CLASS": {
+            "covered": 97,
+            "missed": 0,
+            "total": 97
+          }
+        }
+      },
+      "pit": {
+        "path": "B:\\软件测试大赛\\省赛\\deepseek\\card-approval\\target\\pit-reports\\mutations.xml",
+        "sha256": "0e1c7dd60d3f710da42ac9431e7653c95e3bf64658a7aaf3ad32ba25797a54d4",
+        "bytes": 1023457,
+        "modified_at": "2026-11-15T16:22:24.120315+08:00",
+        "source_type": "raw_file",
+        "expected_total": 1320,
+        "closing_root_count": 1,
+        "strict_xml": true,
+        "total": 1320,
+        "statuses": {
+          "KILLED": 1296,
+          "NO_COVERAGE": 1,
+          "SURVIVED": 23
+        },
+        "detected_attribute": {
+          "false": 24,
+          "true": 1296
+        },
+        "unique_identity_count": 1320,
+        "complete_expected_mutant_set": true
+      },
+      "pit_html": {
+        "path": "B:\\软件测试大赛\\省赛\\deepseek\\card-approval\\target\\pit-reports\\index.html",
+        "sha256": "935e0ee36adf231851a0fbc46d14908fc60353f67eeeeb2ce0f14caa8b0a4593",
+        "bytes": 8468,
+        "modified_at": "2026-11-15T16:22:24.145019+08:00",
+        "source_type": "raw_file"
+      },
+      "historical_logs": [],
+      "build_provenance_binding": "insufficient: no verified run manifest connecting current source/compiled artifacts and all current reports"
+    },
+    {
+      "id": "deepseek/math-assessment",
+      "path": "B:\\软件测试大赛\\省赛\\deepseek\\math-assessment",
+      "stage": "case integrated line",
+      "test_file": {
+        "path": "B:\\软件测试大赛\\省赛\\deepseek\\math-assessment\\src\\test\\java\\net\\mooctest\\StudentTest.java",
+        "sha256": "b4c926c3336b2b293713a5672dd2527117a4687361b32bda7a055e81ecd52aad",
+        "bytes": 660451,
+        "modified_at": "2026-11-15T16:06:51.331998+08:00",
+        "source_type": "raw_file",
+        "physical_lines": 13278
+      },
+      "source_main": {
+        "root": "B:\\软件测试大赛\\省赛\\deepseek\\math-assessment\\src\\main",
+        "file_count": 134,
+        "total_bytes": 513013,
+        "manifest_sha256": "c0102fcf1114d5661e74b37bab6957d9d05df440c3dade74a6d1e7a4fe31e582",
+        "modified_at_range": [
+          "2026-07-23T12:04:18+08:00",
+          "2026-11-14T22:06:28+08:00"
+        ],
+        "source_type": "raw_file_collection"
+      },
+      "pom": {
+        "path": "B:\\软件测试大赛\\省赛\\deepseek\\math-assessment\\pom.xml",
+        "sha256": "9a1aeccf19c9410911dd594d45f75ab80d9f7bec294c8baeac04570d490cccae",
+        "bytes": 8799,
+        "modified_at": "2026-11-14T22:06:28+08:00",
+        "source_type": "raw_file"
+      },
+      "source_baseline": {
+        "reference": "math-assessment",
+        "entries": 135,
+        "matches_baseline_and_original": true,
+        "differing_entries": []
+      },
+      "rules_file": {
+        "path": "B:\\软件测试大赛\\省赛\\deepseek\\math-assessment\\开发者测试比赛要求.md",
+        "sha256": "5d6558a46f9fe8738893ca1f04454e4470feab6cc608517e77e23c0c5d5b4656",
+        "bytes": 2952,
+        "modified_at": "2026-11-14T22:06:28+08:00",
+        "source_type": "raw_file"
+      },
+      "junit": {
+        "selected_glob": "TEST-net.mooctest.StudentTest*.xml",
+        "selected": {
+          "root": "B:\\软件测试大赛\\省赛\\deepseek\\math-assessment\\target\\surefire-reports",
+          "file_count": 29,
+          "total_bytes": 706806,
+          "manifest_sha256": "bc55187f5e7c7dacf6eccc47fb706f9d9c556e33102ef0a3bf760d8a252e758c",
+          "modified_at_range": [
+            "2026-11-15T16:07:03.906570+08:00",
+            "2026-11-15T16:07:07.635678+08:00"
+          ],
+          "source_type": "raw_file_collection",
+          "strict_xml": true,
+          "totals": {
+            "tests": 588,
+            "failures": 0,
+            "errors": 0,
+            "skipped": 0
+          },
+          "failures": []
+        },
+        "excluded": {
+          "file_count": 0
+        },
+        "fresh_reexecution_performed": false
+      },
+      "jacoco": {
+        "path": "B:\\软件测试大赛\\省赛\\deepseek\\math-assessment\\target\\site\\jacoco\\jacoco.xml",
+        "sha256": "d8a40077278947b7f90a92a59488c389ec80637b7819ebdc8334bbc93b1d2e70",
+        "bytes": 517203,
+        "modified_at": "2026-11-15T16:07:08.649303+08:00",
+        "source_type": "raw_file",
+        "strict_xml": true,
+        "counters": {
+          "INSTRUCTION": {
+            "covered": 19641,
+            "missed": 293,
+            "total": 19934
+          },
+          "BRANCH": {
+            "covered": 2616,
+            "missed": 43,
+            "total": 2659
+          },
+          "LINE": {
+            "covered": 3993,
+            "missed": 57,
+            "total": 4050
+          },
+          "COMPLEXITY": {
+            "covered": 2034,
+            "missed": 48,
+            "total": 2082
+          },
+          "METHOD": {
+            "covered": 715,
+            "missed": 10,
+            "total": 725
+          },
+          "CLASS": {
+            "covered": 171,
+            "missed": 0,
+            "total": 171
+          }
+        }
+      },
+      "pit": {
+        "path": "B:\\软件测试大赛\\省赛\\deepseek\\math-assessment\\target\\pit-reports\\mutations.xml",
+        "sha256": "c3fb9b0e46d5651fb64f7035b9f577010e0813fbbcc85589aeab2d9e0f79b86b",
+        "bytes": 2066168,
+        "modified_at": "2026-11-15T16:18:01.891030+08:00",
+        "source_type": "raw_file",
+        "expected_total": 2528,
+        "closing_root_count": 1,
+        "strict_xml": true,
+        "total": 2528,
+        "statuses": {
+          "KILLED": 2427,
+          "NO_COVERAGE": 27,
+          "SURVIVED": 70,
+          "TIMED_OUT": 4
+        },
+        "detected_attribute": {
+          "false": 97,
+          "true": 2431
+        },
+        "unique_identity_count": 2528,
+        "complete_expected_mutant_set": true
+      },
+      "pit_html": {
+        "path": "B:\\软件测试大赛\\省赛\\deepseek\\math-assessment\\target\\pit-reports\\index.html",
+        "sha256": "48415213f915d42871241e2af80c7e5494fdf164d16ad086a12129df5ccf9921",
+        "bytes": 13505,
+        "modified_at": "2026-11-15T16:18:01.936037+08:00",
+        "source_type": "raw_file"
+      },
+      "historical_logs": [],
+      "build_provenance_binding": "insufficient: no verified run manifest connecting current source/compiled artifacts and all current reports"
+    },
+    {
+      "id": "glm/card-approval",
+      "path": "B:\\软件测试大赛\\省赛\\glm\\card-approval",
+      "stage": "parallel comparison line",
+      "test_file": {
+        "path": "B:\\软件测试大赛\\省赛\\glm\\card-approval\\src\\test\\java\\net\\mooctest\\StudentTest.java",
+        "sha256": "cf5e63e25f9e72453eda0dcf3c17a4ae095dd4817700c06f96cdd061b051cec2",
+        "bytes": 527174,
+        "modified_at": "2026-11-15T15:36:27.294628+08:00",
+        "source_type": "raw_file",
+        "physical_lines": 9781
+      },
+      "source_main": {
+        "root": "B:\\软件测试大赛\\省赛\\glm\\card-approval\\src\\main",
+        "file_count": 103,
+        "total_bytes": 189592,
+        "manifest_sha256": "f5d6e51f5c8131f91074dcdd4c382ab615018b2e872c3d9eab5597c500c3fb8d",
+        "modified_at_range": [
+          "2026-11-15T14:18:37.178947+08:00",
+          "2026-11-15T14:18:37.230034+08:00"
+        ],
+        "source_type": "raw_file_collection"
+      },
+      "pom": {
+        "path": "B:\\软件测试大赛\\省赛\\glm\\card-approval\\pom.xml",
+        "sha256": "b93789cb0b1b7abe1e0b039e386e63dcff6a6c8ed66aed66915062f6a5aeb268",
+        "bytes": 7663,
+        "modified_at": "2026-11-15T14:18:37.175948+08:00",
+        "source_type": "raw_file"
+      },
+      "source_baseline": {
+        "reference": "card-approval",
+        "entries": 104,
+        "matches_baseline_and_original": true,
+        "differing_entries": []
+      },
+      "rules_file": {
+        "path": "B:\\软件测试大赛\\省赛\\glm\\card-approval\\开发者测试比赛要求.md",
+        "sha256": "f963290a884043c85160419e340473739983272ce20505e44197a47888fb3f7f",
+        "bytes": 2898,
+        "modified_at": "2026-11-15T14:18:37.174943+08:00",
+        "source_type": "raw_file"
+      },
+      "junit": {
+        "selected_glob": "TEST-net.mooctest.StudentTest*.xml",
+        "selected": {
+          "root": "B:\\软件测试大赛\\省赛\\glm\\card-approval\\target\\surefire-reports",
+          "file_count": 49,
+          "total_bytes": 576398,
+          "manifest_sha256": "831a59f9719975da640a0615df26175b70366477fb2b8dd495b8422adf3dc65a",
+          "modified_at_range": [
+            "2026-11-15T15:37:05.924317+08:00",
+            "2026-11-15T15:37:10.322948+08:00"
+          ],
+          "source_type": "raw_file_collection",
+          "strict_xml": true,
+          "totals": {
+            "tests": 889,
+            "failures": 0,
+            "errors": 0,
+            "skipped": 0
+          },
+          "failures": []
+        },
+        "excluded": {
+          "file_count": 0
+        },
+        "fresh_reexecution_performed": false
+      },
+      "jacoco": {
+        "path": "B:\\软件测试大赛\\省赛\\glm\\card-approval\\target\\site\\jacoco\\jacoco.xml",
+        "sha256": "6b2bb8d790dd0727591ad13cb3ab71f3f1071ae13c599d013944ce1a06d0561d",
+        "bytes": 265990,
+        "modified_at": "2026-11-15T15:37:10.876787+08:00",
+        "source_type": "raw_file",
+        "strict_xml": true,
+        "counters": {
+          "INSTRUCTION": {
+            "covered": 11342,
+            "missed": 43,
+            "total": 11385
+          },
+          "BRANCH": {
+            "covered": 1996,
+            "missed": 17,
+            "total": 2013
+          },
+          "LINE": {
+            "covered": 2351,
+            "missed": 13,
+            "total": 2364
+          },
+          "COMPLEXITY": {
+            "covered": 1299,
+            "missed": 17,
+            "total": 1316
+          },
+          "METHOD": {
+            "covered": 274,
+            "missed": 1,
+            "total": 275
+          },
+          "CLASS": {
+            "covered": 97,
+            "missed": 0,
+            "total": 97
+          }
+        }
+      },
+      "pit": {
+        "path": "B:\\软件测试大赛\\省赛\\glm\\card-approval\\target\\pit-reports\\mutations.xml",
+        "sha256": "9d4926275169a3a8a8fea492950b4992b8a295eea1a7f9ed92c3c1a46579ce9a",
+        "bytes": 1060432,
+        "modified_at": "2026-11-15T16:42:57.252811+08:00",
+        "source_type": "raw_file",
+        "expected_total": 1320,
+        "closing_root_count": 1,
+        "strict_xml": true,
+        "total": 1320,
+        "statuses": {
+          "KILLED": 1265,
+          "NO_COVERAGE": 2,
+          "SURVIVED": 53
+        },
+        "detected_attribute": {
+          "false": 55,
+          "true": 1265
+        },
+        "unique_identity_count": 1320,
+        "complete_expected_mutant_set": true
+      },
+      "pit_html": {
+        "path": "B:\\软件测试大赛\\省赛\\glm\\card-approval\\target\\pit-reports\\index.html",
+        "sha256": "b582f566daf11572cd18ecb76f26d2bbe890bee0ba98bfb088c4b39412280c30",
+        "bytes": 8444,
+        "modified_at": "2026-11-15T16:42:57.297092+08:00",
+        "source_type": "raw_file"
+      },
+      "historical_logs": [],
+      "build_provenance_binding": "insufficient: no verified run manifest connecting current source/compiled artifacts and all current reports"
+    },
+    {
+      "id": "glm/math-assessment",
+      "path": "B:\\软件测试大赛\\省赛\\glm\\math-assessment",
+      "stage": "parallel comparison line",
+      "test_file": {
+        "path": "B:\\软件测试大赛\\省赛\\glm\\math-assessment\\src\\test\\java\\net\\mooctest\\StudentTest.java",
+        "sha256": "c5de1969f420ed1d581db6d91b25fb73c6def87e2546c39be01cd941ae22e688",
+        "bytes": 756024,
+        "modified_at": "2026-11-15T15:30:03.487025+08:00",
+        "source_type": "raw_file",
+        "physical_lines": 13941
+      },
+      "source_main": {
+        "root": "B:\\软件测试大赛\\省赛\\glm\\math-assessment\\src\\main",
+        "file_count": 134,
+        "total_bytes": 513013,
+        "manifest_sha256": "c0102fcf1114d5661e74b37bab6957d9d05df440c3dade74a6d1e7a4fe31e582",
+        "modified_at_range": [
+          "2026-11-15T14:18:37.579984+08:00",
+          "2026-11-15T14:18:37.658047+08:00"
+        ],
+        "source_type": "raw_file_collection"
+      },
+      "pom": {
+        "path": "B:\\软件测试大赛\\省赛\\glm\\math-assessment\\pom.xml",
+        "sha256": "9a1aeccf19c9410911dd594d45f75ab80d9f7bec294c8baeac04570d490cccae",
+        "bytes": 8799,
+        "modified_at": "2026-11-15T14:18:37.577936+08:00",
+        "source_type": "raw_file"
+      },
+      "source_baseline": {
+        "reference": "math-assessment",
+        "entries": 135,
+        "matches_baseline_and_original": true,
+        "differing_entries": []
+      },
+      "rules_file": {
+        "path": "B:\\软件测试大赛\\省赛\\glm\\math-assessment\\开发者测试比赛要求.md",
+        "sha256": "5d6558a46f9fe8738893ca1f04454e4470feab6cc608517e77e23c0c5d5b4656",
+        "bytes": 2952,
+        "modified_at": "2026-11-15T14:18:38.205379+08:00",
+        "source_type": "raw_file"
+      },
+      "junit": {
+        "selected_glob": "TEST-net.mooctest.StudentTest*.xml",
+        "selected": {
+          "root": "B:\\软件测试大赛\\省赛\\glm\\math-assessment\\target\\surefire-reports",
+          "file_count": 92,
+          "total_bytes": 2153090,
+          "manifest_sha256": "2aa97f6a2680f5bf702ade9cb794f5c718c3f7eaa2ad2e7f596fc5d3c622670e",
+          "modified_at_range": [
+            "2026-11-15T15:34:08.072762+08:00",
+            "2026-11-15T15:34:19.763604+08:00"
+          ],
+          "source_type": "raw_file_collection",
+          "strict_xml": true,
+          "totals": {
+            "tests": 1084,
+            "failures": 0,
+            "errors": 0,
+            "skipped": 0
+          },
+          "failures": []
+        },
+        "excluded": {
+          "root": "B:\\软件测试大赛\\省赛\\glm\\math-assessment\\target\\surefire-reports",
+          "file_count": 5,
+          "total_bytes": 111584,
+          "manifest_sha256": "22fff0347d69fec32212b696934ded39e237b3caf3961dd4b10d4960f2165a95",
+          "modified_at_range": [
+            "2026-11-15T15:21:37.733626+08:00",
+            "2026-11-15T15:21:37.914722+08:00"
+          ],
+          "source_type": "raw_file_collection",
+          "strict_xml": true,
+          "totals": {
+            "tests": 12,
+            "failures": 1,
+            "errors": 0,
+            "skipped": 0
+          },
+          "failures": [
+            {
+              "report": "TEST-net.mooctest.EngineGapTests3$FormulaGaps.xml",
+              "test": "singleParameterCheckCoversNestedClosedAndSpacedCalls",
+              "kind": "failure",
+              "message": "Expected net.mooctest.expression.engine.WrongFormat to be thrown, but nothing was thrown."
+            }
+          ]
+        },
+        "fresh_reexecution_performed": false
+      },
+      "jacoco": {
+        "path": "B:\\软件测试大赛\\省赛\\glm\\math-assessment\\target\\site\\jacoco\\jacoco.xml",
+        "sha256": "feced3a30c9a2436f7d84db6fbd5bc4d104659726c2df4966a15a6cd9e47f12c",
+        "bytes": 520475,
+        "modified_at": "2026-11-15T15:34:21.055504+08:00",
+        "source_type": "raw_file",
+        "strict_xml": true,
+        "counters": {
+          "INSTRUCTION": {
+            "covered": 19536,
+            "missed": 398,
+            "total": 19934
+          },
+          "BRANCH": {
+            "covered": 2617,
+            "missed": 42,
+            "total": 2659
+          },
+          "LINE": {
+            "covered": 3964,
+            "missed": 86,
+            "total": 4050
+          },
+          "COMPLEXITY": {
+            "covered": 2013,
+            "missed": 69,
+            "total": 2082
+          },
+          "METHOD": {
+            "covered": 695,
+            "missed": 30,
+            "total": 725
+          },
+          "CLASS": {
+            "covered": 170,
+            "missed": 1,
+            "total": 171
+          }
+        }
+      },
+      "pit": {
+        "path": "B:\\软件测试大赛\\省赛\\glm\\math-assessment\\target\\pit-reports\\mutations.xml",
+        "sha256": "21d1125e1177ffdf876e0d7da46591547e629ee2de89eaf94a6aae99784f23ba",
+        "bytes": 2140042,
+        "modified_at": "2026-11-15T16:54:00.994218+08:00",
+        "source_type": "raw_file",
+        "expected_total": 2528,
+        "closing_root_count": 1,
+        "strict_xml": true,
+        "total": 2528,
+        "statuses": {
+          "KILLED": 2324,
+          "NO_COVERAGE": 40,
+          "SURVIVED": 158,
+          "TIMED_OUT": 6
+        },
+        "detected_attribute": {
+          "false": 198,
+          "true": 2330
+        },
+        "unique_identity_count": 2528,
+        "complete_expected_mutant_set": true
+      },
+      "pit_html": {
+        "path": "B:\\软件测试大赛\\省赛\\glm\\math-assessment\\target\\pit-reports\\index.html",
+        "sha256": "821d097d051837d70d254d237e06da862b8022950c90462d0c1631b3496fd7fc",
+        "bytes": 13505,
+        "modified_at": "2026-11-15T16:54:01.041217+08:00",
+        "source_type": "raw_file"
+      },
+      "historical_logs": [],
+      "build_provenance_binding": "insufficient: no verified run manifest connecting current source/compiled artifacts and all current reports",
+      "notes": [
+        "StudentTest report set is 1084 tests with no failures. Excluded stale EngineGapTests3 reports contain 12 tests and one failure.",
+        "Current PIT has 2324 KILLED and 6 TIMED_OUT: 2330 is detected, not KILLED."
+      ]
+    }
+  ],
+  "damaged_archive_diagnostic": {
+    "source_type": "damaged_archive_diagnostic",
+    "archive": {
+      "path": "B:\\软件测试大赛\\省赛\\GPT\\math-assessment.zip",
+      "sha256": "6b960db2b26a7c0726071cff361656b57537b3ed4b9b65d78f2d4851d8aee02f",
+      "bytes": 2143587,
+      "modified_at": "2026-11-15T14:24:04.871166+08:00",
+      "source_type": "raw_file"
+    },
+    "entry": "target/pit-reports/mutations.xml",
+    "entry_sha256": "0a97375400298b2afecc4341b01a165e763f70f0910941c131e9ee79996d5a18",
+    "entry_bytes": 1954617,
+    "entry_zip_timestamp_local": "2026-11-15T14:17:54+08:00",
+    "raw_entry_strict_xml": false,
+    "raw_entry_parse_error": "not well-formed (invalid token): line 2532, column 19",
+    "closing_root_count": 2,
+    "first_document_extraction": {
+      "method": "In memory only: take bytes decoded as UTF-8 through the first literal </mutations>; no file was repaired or overwritten.",
+      "strict_xml_after_extraction": true,
+      "total": 2528,
+      "statuses": {
+        "KILLED": 1719,
+        "NO_COVERAGE": 613,
+        "SURVIVED": 193,
+        "TIMED_OUT": 3
+      },
+      "detected_attribute": {
+        "false": 806,
+        "true": 1722
+      },
+      "unique_identity_count": 2528
+    },
+    "acceptable_as_valid_complete_original_report": false,
+    "interpretation": "The diagnostic first document has 1719 KILLED + 3 TIMED_OUT = 1722 detected. The malformed archive entry and truncated working XML remain invalid evidence for a verified complete build."
+  },
+  "self_report": {
+    "path": "B:\\软件测试大赛\\省赛\\GPT\\rewrite\\StudentTest-提升报告.md",
+    "sha256": "fbe4a37ffdcda44823cbdbb418d63a3a3ccbe9c3dc47112d41944bc5af8a9cd4",
+    "bytes": 6496,
+    "modified_at": "2026-11-15T16:00:01.024416+08:00",
+    "source_type": "raw_file"
+  },
+  "rule_conflict_evidence": {
+    "project": "GPT/rewrite/math-assessment",
+    "test_source": "src/test/java/net/mooctest/StudentTest.java",
+    "rules_source": "开发者测试比赛要求.md",
+    "rules_lines": [
+      45,
+      46,
+      47
+    ],
+    "rules_summary": "Prohibits intervention in function return values or runtime replacement of dependencies to change execution logic or reach paths unavailable in the original implementation.",
+    "findings": [
+      {
+        "lines": [
+          5733,
+          5736
+        ],
+        "observed": "Static DynamicFunctionCompiler.compile is configured to return an artificial compiled function."
+      },
+      {
+        "lines": [
+          5875,
+          5887
+        ],
+        "observed": "A test uses that static interception to execute the successful EquationSolver.compile path."
+      },
+      {
+        "lines": [
+          6287,
+          6292
+        ],
+        "observed": "ComplexExpression constructor interception returns configured complex values from calculation methods."
+      }
+    ],
+    "classification": "Local tool metrics are verified, but compliant submit-ready results are not established; the mechanisms conflict with the supplied rule text."
+  },
+  "card_rewrite_regression": {
+    "source_type": "derived_from_strict_original_XMLs",
+    "identity_fields": [
+      "mutatedClass",
+      "mutatedMethod",
+      "methodDescription",
+      "mutator",
+      "indexes/index[]",
+      "blocks/block[]"
+    ],
+    "same_identity_set": true,
+    "gained_KILLED": 386,
+    "lost_KILLED": 147,
+    "net_KILLED_change": 239,
+    "lost_by_class": {
+      "net.mooctest.expense.ExpensePolicy": 10,
+      "net.mooctest.permission.AccessPolicy": 21,
+      "net.mooctest.workflow.ApprovalStep": 12,
+      "net.mooctest.workflow.ApprovalWorkflowEngine": 68,
+      "net.mooctest.workflow.StepProgress": 24,
+      "net.mooctest.workflow.WorkflowSnapshot": 12
+    }
+  },
+  "case_crosscheck": {
+    "deepseek_metrics": "Strict XMLs and StudentTest report sets corroborate the case Card 1296/1320 and Math 2427/2528 KILLED, and its JaCoCo/JUnit figures.",
+    "deepseek_file_lines_correction": {
+      "card": 9267,
+      "math": 13278
+    },
+    "glm_math_correction": {
+      "KILLED": 2324,
+      "TIMED_OUT": 6,
+      "detected": 2330,
+      "StudentTest_execution_count": 1084,
+      "StudentTest_failures": 0,
+      "excluded_stale_probe_tests": 12,
+      "excluded_stale_probe_failures": 1
+    },
+    "official_score_status": "not verified"
+  },
+  "audit_finished_at": "2026-11-15T23:54:57.167326+08:00"
+}

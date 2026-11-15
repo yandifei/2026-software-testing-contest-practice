@@ -1,6 +1,6 @@
 # 防错方法论：本技能执行者已犯错误清单
 
-适用：每次编写与验证测试前通读；把"未犯过的错"当作待检查项。每条含症状、根因、检查法与适用边界。来源：2026-10-28 至 2026-11-01 四轮实战（Research/Credit/corporate-card-expense-approval/online-math-expression-grading）中的真实错误。
+适用：每次编写与验证测试前通读；把"未犯过的错"当作待检查项。每条含症状、根因、检查法与适用边界。来源：2026-10-28 至 2026-11-01 四轮实战（Research/Credit/corporate-card-expense-approval/online-math-expression-grading）及 2026-11-15 省赛（math-assessment/card-approval，多执行者并行）中的真实错误。
 
 ## 1. 输入值域穷举不完整（本技能最大的两次错误）
 
@@ -112,4 +112,122 @@
 **根因**：对编译器的 switch 翻译策略凭版本记忆推断，未验证实际字节码。
 
 **检查法**：涉及枚举 switch 的 default 分支触达实验前，先 `javap -c` 确认是 typeSwitch（null→default）还是 ordinal()/SwitchMap（null→NPE）；伪造 ordinal（Unsafe.allocateInstance+putInt）属禁止层——制造类型系统中不存在的对象，是伪造执行痕迹。default 不可达就写路径证明并保留分母。
+
+## 14. 只盯"分支+变异"，漏掉 method/statement 一半的分（2026-11-15 省赛）
+
+**症状**：前 3 小时按"分支 40% / 变异 30%"排优先级，方法覆盖长期停在 Math 196/725。读到 `/api/contests/{id}` 才发现每题权重是 `mutation 25 / branch 25 / **method 25** / **statement 25**`——方法覆盖与语句覆盖合计 50 分，比变异高。
+
+**根因**：只读页面文案（页面不列权重），把历史赛制的权重当成当前赛制。
+
+**检查法**：开局第一件事读 API 权重并写进要求记录；若拿不到，按"method → line → branch → mutation"的默认顺序做（方法/语句最便宜且权重相同）。`coverage-mutation-research.md` §1 的缺口台账要同时记 METHOD/LINE/BRANCH 三类缺口。
+
+## 15. 合并测试文件时"花括号计数"把文件写坏
+
+**症状**：把 probe 类体并入主测试文件后编译失败：`需要 class、interface、enum 或 record`，定位在文件末尾多出的 `}`。
+
+**根因**：用逐字符 `count('{')`/`count('}')` 配平，没有跳过字符串字面量、字符字面量、注释里的花括号（如 `assertEquals("{", x)`、`"}}}"`、注释中的 `}`）。
+
+**检查法**：用状态机（code / line_comment / block_comment / string / char / text_block）配平；合并后**必须**跑一次 `mvn -B test` 编译验证；只取文件第一个顶层类的类体，别名类（`class XxxTest extends Xxx {}`）不要搬，否则用例数会翻倍。
+
+## 16. 同一目录并发跑 PIT / mvn，报告被写成拼接体
+
+**症状**：`mutations.xml` 跑到一半报 `mismatched tag`；打开看是两份报告首尾相接（中间出现 `</mutations>` 后继续有 `<mutation>`）。另一次报告只生成 839/1320 条，被误读成"杀死率 96.78%"。
+
+**根因**：两个进程同时写 `target/pit-reports/mutations.xml`；或读报告时另一个构建正在写。PIT 的 `-DtargetTests` 局部运行也会生成"条数远小于全量"的报告。
+
+**检查法**：
+- 同一 `target` 目录同一时刻只允许一个 `mvn`；多执行者必须各自独立副本；
+- 每轮 PIT 结束**立刻**按时间戳复制快照（`_baseline/<题>-pit-<hhmm>.xml`），后续分析只读快照；
+- 采信报告前核对"条数 == 期望分母"（本题 1320 / 2528），不等就重跑；
+- 解析用容错脚本（`scripts/pit_robust.py`，正则抓 `<mutation>` 块并按 类/方法/行/算子/index 去重），不要依赖严格 XML 解析；
+- 目标目录被外部进程锁住报"另一个程序正在使用此文件"时，改用 `mvn -B test`（不 clean），不要反复 `clean` 硬撞。
+
+## 17. 外部覆盖：工作副本被"重新解压"打回骨架
+
+**症状**：两个执行者写了 20 分钟（2000+ 行）后，测试文件突然变回题包骨架（69/81 行），`target` 也被还原；执行者以为是自己写坏。
+
+**根因**：用户/其它工具在会话期间重新解压原始包覆盖了工作目录；无版本控制、无快照。
+
+**检查法**：
+- 在会话开始时启动一个 20 秒轮询的快照守护：文件哈希变化即复制到 `_snapshot/<题>-<hhmmss>.java`；
+- 每轮大改前手工 `.bak` 到 `_baseline/`；
+- 发现文件"自己变短"先比对 `_snapshot` 与原始包 mtime，再决定重写——不要让执行者重新发明内容。
+
+## 18. 共享浏览器被其它会话接管 / 平台提交被别人顶掉
+
+**症状**：浏览器工具报 `the selected DSH sidebar is not connected`（bridge 残留 pid 已死），或 `sidebar command failed: guest 2 is not held by this conversation`；平台 `submittedAt` 出现非本会话时间的提交（文件大小与本地交付件不同）。
+
+**根因**：桌面端侧边浏览器宿主没起来；多个 AI 工具会话共用同一个侧边浏览器实例；"判分以最后一次提交为准"。
+
+**检查法**：
+- 连接失败先看 `~/.dsh/dsh-builtin-browser-bridge.json` 的 pid 是否存活、端口是否在听；不行就让用户打开侧边浏览器面板，再 `reset_session` + 重开目标页；
+- 每次提交前后读 `/api/contests/{id}` 的 `submittedAt` 与 `submittedFiles[].fileSize`，确认平台上是谁的版本；
+- 交付收尾**再提交一次**，并在汇报里声明"当前平台归属本会话版本"；多工具并行时提醒用户"最后一次为准"。
+
+## 19. 环境变量把 Maven 带到错误的 JDK
+
+**症状**：`mvn -version` 显示 Java 1.8，项目要求 JDK 21（enforcer `requireJavaVersion [21,22)` 直接失败）；`java -version` 却是 21。
+
+**根因**：系统 `JAVA_HOME` 指向旧 JDK，`PATH` 里的 `java` 来自另一处；Maven 用 `JAVA_HOME`。
+
+**检查法**：每个构建会话先 `java -version` 与 `mvn -version` 双查；发现不一致就显式设 `JAVA_HOME=<真实21目录>` 并把它放 `PATH` 首位；不要修改系统环境变量（会影响用户其它工程）。
+
+## 20. 中文文件名 ZIP 条目解压成乱码
+
+**症状**：解压出 `�����߲��Ա���Ҫ��.md`，找不到题包说明文档。
+
+**根因**：ZIP 条目名是 GBK/CP936 且未打 UTF-8 标志，解压端按 UTF-8 解码。
+
+**检查法**：用 `scripts/extract_zip.py`（`cp437` 还原字节后按 `gbk → gb18030 → utf-8` 依次尝试）；解包后核对"题包说明文件名是否可读"，不可读说明解码链没走对，别在这种情况下继续打包（会把乱码名带进交付 ZIP）。
+
+## 21. 断言只落在"布尔结果"上，被另一条拒绝顶包
+
+**症状**：`AccessPolicy` 48 个变异在已覆盖代码上 SURVIVED；`allowed == false` 的断言全部通过，但删掉任意一条拒绝规则都不影响最终布尔值。
+
+**根因**：同一对象可能因多条独立规则被拒；只断言 `allowed` 时，被变异的规则由其它规则"顶包"。
+
+**检查法**：断言可观察面的**精确内容**——`reasons()` 列表（含顺序）、异常消息原文、`BigDecimal.toString()/scale()`、集合内容、`assertSame/assertNotSame` 对象身份；对"边界赋回相同值"型变异必须找归一化之前的观察面。
+
+## 22. 把"执行者说已经杀死"当成证据
+
+**症状**：执行者汇报 KILLED 1216、1285、2427 等数字，若直接采信，可能把半写报告或局部 PIT（`-DtargetTests` 只跑一个 probe 类）当成全量结果。
+
+**根因**：缺少独立复核环节；局部 PIT 报告条数天然小于全量。
+
+**检查法**：集成者用 `scripts/pit_robust.py` / `jacoco_report.py` 从**原始报告文件**重算，与汇报逐项对账；对不上就重跑；汇报模板强制要求"命令、退出码、报告路径、快照文件名"。
+
+## 23. 合并后的"幽灵测试类"污染 PIT 绿套件检查（2026-11-15 省赛）
+
+**症状**：`mvn -B test` 全绿，PIT 却报 `2 tests did not pass without mutation ... requires a green suite`；SEVERE 行点名的测试类（如 `EngineGapTests3`）在当前 `src/test` 里根本不存在。连跑两次 PIT 都挂同一批"不存在的类"。
+
+**根因**：段文件合并进单一 `StudentTest.java` 后，曾拷入 `src/test` 的独立副本没有删（或 `target/test-classes` 里残留旧编译产物）。PIT 扫描的是**编译产物**，把旧类也执行了一遍——旧断言加上另一套共享静态状态的执行顺序，必挂。
+
+**检查法**：
+- SEVERE 行点名的类不在当前 `src/test` → 就是幽灵类：删除 `src/test` 下的独立副本，`rm -rf target/test-classes` 后重编译再跑 PIT；
+- 每次把段文件合并进主文件后，**立即**删除曾拷入 `src/test` 的独立副本（合并产物已含其内容）；
+- PIT 日志不要用 `tail` 过滤后再看——`Tests failing without mutation:` 的诊断行在日志中段，过滤恰好把它藏掉；
+- 全量 PIT 前核对 `src/test` 只有一个测试文件、`ls target/test-classes/net/mooctest/` 与源文件一一对应。
+
+## 24. 共享静态组件的行为依赖测试顺序——surefire 全绿 ≠ PIT 全绿（2026-11-15 省赛）
+
+**症状**：两个测试 surefire 下通过，PIT 覆盖阶段却挂掉。被测类有共享静态单例（如数学引擎 `BracketsCalculation2` 的公共实例缓存、`CalculationManagement` 注册表），`check()`/编译路径的输出（异常消息原文、缓存命中与否）取决于之前哪些测试用过它。
+
+**根因**：PIT 的测试执行顺序与 surefire 不同，共享实例携带的缓存状态不同；对"依赖共享缓存状态"的精确断言（消息原文、是否抛出）时灵时不灵。
+
+**检查法**：
+- 每个涉及共享静态组件的测试段自带注册表/缓存重置的 `@BeforeEach`（反射清空），合并时**不得删**这些钩子；主文件的全局钩子只覆盖自己的段；
+- 对确实依赖共享缓存状态的断言改为容错（`try/catch` 接受任意校验结果并注释原因）——目标分支的扫描在抛异常**之前**已执行，覆盖率不受影响，只是放弃对缓存态输出的精确断言；
+- 判断某断言是否顺序敏感：在另一个测试类里先执行一遍同样的库调用序列再跑该断言，结果变了就是。
+
+## 25. 期望值靠读源码推算而不靠探针——重载、隐式契约、题包自带缺陷全会翻车（2026-11-15 省赛一轮内八次）
+
+**症状**（全部真实发生）：改名函数后断言 9 实为 2（`pow(1,2)=1`，改写后的公式是新公式不是替换前缀）；单参组件对 `sum(1,2)+1` 断言 4 实为 13（内式 `"1,2"` 被括号组件当数值 12）；`moduleLength(3,4)` 断言 5 实为 ArrayIndexOutOfBoundsException（题包自带缺陷：循环内单参调用 pow）；`sumOfRange(10,1)` 断言 55.0 实为 -44（int 字面量选中了 int 重载，该重载无绝对值守卫）；以数字命名的组件（如 `p11solver`）构造即抛异常（名称校验只收纯字母）；经公式路径的 `dayToMs(2)` 实为 1.7288（科学计数法 `1.728E8` 被括号解析器拼接）。
+
+**根因**：把"读懂了源码"当成"算对了行为"。重载决议、隐式契约（名称校验、归一化、占位符追加位置）、题包自带缺陷，都不在"读懂"里。
+
+**检查法**：
+- 语义不确定的 API，先写一次性探针程序（`javac` + `java` 直跑，不经 maven）实测，再写断言；期望值断言失败时**先怀疑期望值**再怀疑被测代码；
+- 数值字面量明确写 `10.0`/`1.0` 防止重载选错；
+- 题包自带缺陷按"有无依赖两种输入下的确定性行为"固化成刻画测试（如 moduleLength：未注册依赖抛带函数名的 UnsupportedOperationException，注册后抛 AIOOBE），注释标明是缺陷刻画而非业务正确性，不修源码；
+- 与第 12 条"变异语义靠记忆"同类：变异语义要反汇编，**生产行为要探针**。
 

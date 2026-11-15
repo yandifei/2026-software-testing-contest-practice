@@ -2,6 +2,26 @@
 
 核验日期：2026-10-28，北京时间。每次执行需复查当场页面，本文件是规则快照。
 
+## 2026-11-15 省赛（contest 35）当场核验
+
+来源：https://www.mooctest.net/student/contest/35 ，2026-11-15 14:00–16:30 直接读取页面与前端 API。标题 **2026软件测试大赛-开发者测试-个人-省赛**，比赛时间 2026-11-15 14:00–18:00（+08:00），报名练习阶段结束于此，本场即正式省赛。
+
+| 项目 | 本次已确认内容（页面 + `/api/contests/35`） |
+| --- | --- |
+| 题目 | ① `2026-开发者-CorCard-省赛`（题包 `card-approval.zip`，problemId 135，附件 `problems/135/card-approval_*.zip`）；② `2026-开发者-Math-省赛`（`math-assessment.zip`，problemId 136） |
+| 评分权重 | 每题 `mutation 25 / coverage_branch 25 / coverage_method 25 / coverage_statement 25`；每题 `scoreProportion 50` |
+| 测试文件 | **固定** `src/test/java/net/mooctest/StudentTest.java`（题包说明明写；不是"任意 xxxTest"），不得含 `main()`，不得新增其它测试文件 |
+| 修改边界 | 禁改 `src/main/java`（含 `net/mooctest/`）与 `pom.xml` |
+| 上传槽 | 每题两槽：文件1 测试脚本 `.java` ≤2.0 MB、文件2 项目压缩包 `.zip` ≤20.0 MB |
+| ZIP 结构 | 首层直接是 `pom.xml`、`开发者测试比赛要求.md`、`src/`、`target/`，**不要**额外套一层工程目录 |
+| target 必须包含 | `target/pit-reports/index.html` 与 `target/site/jacoco/index.html`（两套完整报告） |
+| 判分依据 | **以最后一次提交的 `.java` 为准**，ZIP 仅作分数异议时的辅助判断；可重交 |
+| 环境 | JDK 21、Maven 3.9.6+、JUnit 5（题包 POM：JUnit 5.10.2、Mockito 5.12.0、JaCoCo 0.8.11、PIT 1.15.3 + pitest-junit5 1.2.1、maven-enforcer 要求 `[3.9.6,4.0)` 与 `[21,22)`） |
+| 作弊条款 | 依据《开发者测试赛项说明2026-省赛》第 2 点：禁止利用评分工具运行特征或改变被测程序执行逻辑人为提高覆盖率/杀死率，含"根据变异痕迹让测试失败""运行时改写被测程序使进入原实现无法到达的路径"；允许字节码解析、插入探针等**分析**手段。**明示"理论上限可能低于 100%"** |
+| 未决 | 平台 statement 口径（JaCoCo LINE 或 Clover）、平台算子集是否强于 DEFAULTS、评分完成时间 |
+
+> 该条作弊条款是本轮放弃 `mockConstruction` / `mockStatic` 的直接依据（它们替换协作者/静态实现，使执行进入原实现无法到达的路径）。真实输入、反射直调、mock record/enum 构造非法状态仍在使用（"仅修改测试代码"边界内）。详见 [2026-11-15 省赛案例](case-2026-11-15-provincial.md) §4–§6。
+
 ## 本次直接读取的提交页
 
 来源：[慕测比赛 10](https://www.mooctest.net/student/contest/10)，登录态页面可访问性树。标题：**2026软件测试大赛-开发者测试-个人-报名练习**。报名和比赛时间均显示 2026-09-20 08:00 至 2026-10-30 20:00。这是练习期限，不是正式预选赛期限。
