@@ -1,0 +1,125 @@
+    static final ApprovalWorkflowEngine wfEngine = new ApprovalWorkflowEngine();
+    static ApprovalStep wfStep(String id,StepMode mode,int required,String... people) {
+        return new ApprovalStep(id," Review ",new LinkedHashSet<>(Arrays.asList(people)),mode,required,true,false,null);
+    }
+    static WorkflowSnapshot wfStart(ApprovalStep... steps) {
+        return wfEngine.start(" FLOW "," owner ",List.of(steps),MOMENT,false,true);
+    }
+    static WorkflowAction wfAction(String actor,ApprovalDecision decision,Instant time) {
+        return new WorkflowAction(actor,decision," explanation ",time);
+    }
+    static void wfPreserved(WorkflowSnapshot before,WorkflowSnapshot after,WorkflowState state,int index,Instant time) {
+        assertEquals(state,after.state());assertEquals(index,after.currentStepIndex());assertEquals(time,after.updatedAt());assertEquals(before.version()+1,after.version());assertEquals(before.workflowId(),after.workflowId());assertEquals(before.requesterId(),after.requesterId());assertEquals(before.createdAt(),after.createdAt());assertEquals(before.urgent(),after.urgent());assertEquals(before.withdrawalAllowed(),after.withdrawalAllowed());
+    }
+    @Test void wfStepConstructionAndDelegationContracts() {
+        ApprovalStep single=wfStep(" s ",StepMode.ANY_ONE,1," a ");assertEquals("s",single.stepId());assertEquals("Review",single.name());assertEquals(Set.of("a"),single.approverIds());assertTrue(single.canApprove(" a "));assertFalse(single.canApprove(null));assertFalse(single.canApprove(""));assertFalse(single.canApprove("other"));
+        textFields(single,"stepId","name");required(single,"approverIds","mode");bad(single,"approverIds",Set.of());bad(single,"approverIds",Set.of(" "));
+        Set<String> nullApprover=new HashSet<>();nullApprover.add(null);bad(single,"approverIds",nullApprover);
+        error("requiredApprovals is outside approver count",()->changed(single,"requiredApprovals",0));error("requiredApprovals is outside approver count",()->changed(single,"requiredApprovals",2));
+        ApprovalStep any=wfStep("s",StepMode.ANY_ONE,1,"a","b","c");error("ANY_ONE requires exactly one approval",()->changed(any,"requiredApprovals",2));
+        ApprovalStep all=wfStep("s",StepMode.UNANIMOUS,3,"a","b","c");error("UNANIMOUS requires every approver",()->changed(all,"requiredApprovals",2));
+        ApprovalStep majority=wfStep("s",StepMode.MAJORITY,2,"a","b","c");error("MAJORITY threshold must exceed half of approvers",()->changed(majority,"requiredApprovals",1));
+        assertEquals(2,wfStep("s",StepMode.MAJORITY,2,"a","b").requiredApprovals());assertEquals(1,wfStep("s",StepMode.REQUIRED_COUNT,1,"a","b").requiredApprovals());
+        Set<String> mutable=new HashSet<>(Set.of("a"," a ","b"));ApprovalStep normalized=new ApprovalStep("s","name",mutable,StepMode.UNANIMOUS,2,true,true,MOMENT);mutable.clear();assertEquals(Set.of("a","b"),normalized.approverIds());assertThrows(UnsupportedOperationException.class,()->normalized.approverIds().clear());
+        ApprovalStep delegated=normalized.delegate(" a "," c ");assertEquals(Set.of("b","c"),delegated.approverIds());assertEquals(Set.of("a","b"),normalized.approverIds());assertEquals(normalized.stepId(),delegated.stepId());assertEquals(normalized.name(),delegated.name());assertEquals(normalized.mode(),delegated.mode());assertEquals(normalized.requiredApprovals(),delegated.requiredApprovals());assertEquals(normalized.deadline(),delegated.deadline());assertTrue(delegated.skipRequester());assertTrue(delegated.delegationAllowed());
+        error("delegation is not allowed for this step",()->changed(single,"delegationAllowed",false).delegate("a","c"));
+        for(String from:new String[]{null,"z"," "})error("delegating actor is not an approver",()->any.delegate(from,"c"));for(String to:new String[]{null," "})error("delegate must not be blank",()->any.delegate("a",to));
+        error("cannot delegate to the same actor",()->any.delegate(" a "," a "));error("delegate is already an approver",()->any.delegate("a","b"));
+    }
+    @Test void wfProgressCountsVotesAndCopiesData() {
+        ApprovalStep step=wfStep("s",StepMode.REQUIRED_COUNT,2,"a","b","c","d");Map<String,ApprovalDecision> votes=new HashMap<>();votes.put("a",ApprovalDecision.APPROVE);votes.put("b",ApprovalDecision.REJECT);votes.put("c",ApprovalDecision.ABSTAIN);votes.put("d",ApprovalDecision.RETURN);StepProgress progress=new StepProgress(step,votes);votes.clear();assertEquals(1,progress.approvals());assertEquals(1,progress.rejections());assertEquals(1,progress.abstentions());assertEquals(4,progress.decisions().size());assertFalse(progress.satisfied());assertFalse(progress.canStillSucceed());assertThrows(UnsupportedOperationException.class,()->progress.decisions().clear());
+        required(progress,"step","decisions");error("decision actor is not an approver: stranger",()->new StepProgress(step,Map.of("stranger",ApprovalDecision.APPROVE)));
+        StepProgress empty=StepProgress.empty(step);assertSame(step,empty.step());assertTrue(empty.decisions().isEmpty());assertEquals(0,empty.approvals());assertEquals(0,empty.rejections());assertEquals(0,empty.abstentions());assertFalse(empty.satisfied());assertTrue(empty.canStillSucceed());
+        StepProgress one=empty.decide(" a ",ApprovalDecision.APPROVE);assertEquals(Map.of("a",ApprovalDecision.APPROVE),one.decisions());assertEquals(1,one.approvals());assertTrue(empty.decisions().isEmpty());
+        for(String actor:new String[]{null," "})error("actorId must not be blank",()->empty.decide(actor,ApprovalDecision.APPROVE));error("actor is not an approver for the current step",()->empty.decide("z",ApprovalDecision.APPROVE));error("actor has already decided this step",()->one.decide(" a ",ApprovalDecision.ABSTAIN));assertThrows(NullPointerException.class,()->empty.decide("a",null));
+        ApprovalStep delegated=step.delegate("b","new");StepProgress replaced=one.withDelegatedStep(delegated,"b");assertSame(delegated,replaced.step());assertEquals(one.decisions(),replaced.decisions());error("actor cannot delegate after making a decision",()->one.withDelegatedStep(step.delegate("a","new"),"a"));
+    }
+    @Test void wfVotingThresholdsAtEveryReachableCount() {
+        for(StepMode mode:StepMode.values()) {
+            int needed=mode==StepMode.ANY_ONE?1:mode==StepMode.UNANIMOUS?4:3;
+            ApprovalStep step=wfStep("s",mode,needed,"a","b","c","d");
+            for(int yes=0;yes<=4;yes++)for(int no=0;no<=4-yes;no++) {
+                Map<String,ApprovalDecision> votes=new HashMap<>();String[] ids={"a","b","c","d"};for(int i=0;i<yes;i++)votes.put(ids[i],ApprovalDecision.APPROVE);for(int i=yes;i<yes+no;i++)votes.put(ids[i],ApprovalDecision.ABSTAIN);StepProgress p=new StepProgress(step,votes);
+                assertEquals(yes,p.approvals());assertEquals(no,p.abstentions());assertEquals(0,p.rejections());assertEquals(yes>=needed,p.satisfied());assertEquals(4-no>=needed,p.canStillSucceed());
+            }
+        }
+    }
+    @Test void wfActionAndSnapshotInvariants() {
+        WorkflowAction action=new WorkflowAction(" a ",ApprovalDecision.APPROVE," note ",MOMENT);assertEquals("a",action.actorId());assertEquals("note",action.comment());assertNull(new WorkflowAction("a",ApprovalDecision.ABSTAIN,null,MOMENT).comment());assertEquals("",new WorkflowAction("a",ApprovalDecision.APPROVE," ",MOMENT).comment());textFields(action,"actorId");required(action,"decision","actionTime");
+        for(ApprovalDecision decision:new ApprovalDecision[]{ApprovalDecision.REJECT,ApprovalDecision.RETURN})for(String comment:new String[]{null," "})error("reject and return decisions require a comment",()->new WorkflowAction("a",decision,comment,MOMENT));
+        WorkflowSnapshot start=wfStart(wfStep("s",StepMode.ANY_ONE,1,"a"));assertEquals("FLOW",start.workflowId());assertEquals("owner",start.requesterId());assertEquals(1,start.version());assertEquals(MOMENT,start.createdAt());assertEquals(MOMENT,start.updatedAt());assertFalse(start.urgent());assertTrue(start.withdrawalAllowed());assertFalse(start.terminal());assertSame(start.steps().get(0),start.currentStep());
+        textFields(start,"workflowId","requesterId");required(start,"state","steps","createdAt","updatedAt");error("workflow requires at least one step",()->changed(start,"steps",List.of()));error("updatedAt must not be before createdAt",()->changed(start,"updatedAt",MOMENT.minusNanos(1)));error("version must be positive",()->changed(start,"version",0L));error("version must be positive",()->changed(start,"version",-1L));
+        for(WorkflowState state:WorkflowState.values()) {
+            boolean terminal=state!=WorkflowState.PENDING&&state!=WorkflowState.IN_PROGRESS;WorkflowSnapshot sample=changed(start,"state",state);assertEquals(terminal,sample.terminal());assertSame(start.steps().get(0),sample.currentStep());
+            String message=terminal?"terminal currentStepIndex is invalid":"active currentStepIndex is invalid";error(message,()->changed(sample,"currentStepIndex",-1));error(message,()->changed(sample,"currentStepIndex",2));
+            if(terminal){WorkflowSnapshot finished=changed(sample,"currentStepIndex",1);error("terminal workflow has no current step",finished::currentStep);}else error(message,()->changed(sample,"currentStepIndex",1));
+        }
+        List<StepProgress> mutable=new ArrayList<>(start.steps());WorkflowSnapshot copy=changed(start,"steps",mutable);mutable.clear();assertEquals(1,copy.steps().size());assertThrows(UnsupportedOperationException.class,()->copy.steps().clear());
+    }
+    @Test void wfStartRejectsInvalidPlansAndSkipsOnlyRequesterOnlySteps() {
+        ApprovalStep regular=wfStep("review",StepMode.ANY_ONE,1,"a");assertThrows(NullPointerException.class,()->wfEngine.start("id","owner",null,MOMENT,false,false));assertThrows(NullPointerException.class,()->wfEngine.start("id","owner",List.of(regular),null,false,false));
+        error("workflow requires at least one step",()->wfEngine.start("id","owner",List.of(),MOMENT,false,false));for(String requester:new String[]{null," "})error("requesterId must not be blank",()->wfEngine.start("id",requester,List.of(regular),MOMENT,false,false));
+        error("stepId must be unique: review",()->wfStart(regular,regular));for(Instant date:new Instant[]{MOMENT.minusNanos(1),MOMENT})error("step deadline must be after workflow creation",()->wfStart(changed(regular,"deadline",date)));
+        assertEquals(WorkflowState.PENDING,wfStart(changed(regular,"deadline",MOMENT.plusNanos(1))).state());
+        ApprovalStep skip=changed(wfStep("skip",StepMode.ANY_ONE,1,"owner"),"skipRequester",true);WorkflowSnapshot approved=wfStart(skip);assertEquals(WorkflowState.APPROVED,approved.state());assertEquals(1,approved.currentStepIndex());assertTrue(approved.terminal());assertTrue(approved.steps().get(0).decisions().isEmpty());
+        WorkflowSnapshot first=wfStart(skip,regular);assertEquals(1,first.currentStepIndex());assertEquals(WorkflowState.PENDING,first.state());assertEquals(1,first.version());
+        assertEquals(0,wfStart(changed(skip,"skipRequester",false)).currentStepIndex());assertEquals(0,wfStart(changed(skip,"approverIds",Set.of("other"))).currentStepIndex());assertEquals(0,wfStart(changed(skip,"approverIds",Set.of("owner","other"))).currentStepIndex());
+        WorkflowSnapshot flags=wfEngine.start("id","owner",List.of(regular),MOMENT,true,false);assertTrue(flags.urgent());assertFalse(flags.withdrawalAllowed());
+    }
+    @Test void wfActionsAdvanceSequentiallyAndPreservePriorSnapshots() {
+        ApprovalStep first=wfStep("one",StepMode.REQUIRED_COUNT,2,"a","b","c");ApprovalStep skipped=changed(wfStep("skip",StepMode.ANY_ONE,1,"owner"),"skipRequester",true);ApprovalStep last=wfStep("last",StepMode.ANY_ONE,1,"d");WorkflowSnapshot start=wfStart(first,skipped,last);
+        WorkflowSnapshot once=wfEngine.act(start,wfAction(" a ",ApprovalDecision.APPROVE,MOMENT));wfPreserved(start,once,WorkflowState.IN_PROGRESS,0,MOMENT);assertEquals(Map.of("a",ApprovalDecision.APPROVE),once.currentStep().decisions());assertTrue(start.currentStep().decisions().isEmpty());
+        WorkflowSnapshot twice=wfEngine.act(once,wfAction("b",ApprovalDecision.APPROVE,MOMENT.plusSeconds(1)));wfPreserved(once,twice,WorkflowState.IN_PROGRESS,2,MOMENT.plusSeconds(1));assertEquals(2,twice.steps().get(0).approvals());assertTrue(twice.steps().get(1).decisions().isEmpty());assertTrue(twice.currentStep().decisions().isEmpty());
+        WorkflowSnapshot done=wfEngine.act(twice,wfAction("d",ApprovalDecision.APPROVE,MOMENT.plusSeconds(2)));wfPreserved(twice,done,WorkflowState.APPROVED,3,MOMENT.plusSeconds(2));assertEquals(1,done.steps().get(2).approvals());assertEquals(2,twice.currentStepIndex());
+        WorkflowSnapshot trailing=wfStart(wfStep("one",StepMode.ANY_ONE,1,"a"),skipped);WorkflowSnapshot finalSkipped=wfEngine.act(trailing,wfAction("a",ApprovalDecision.APPROVE,MOMENT));assertEquals(WorkflowState.APPROVED,finalSkipped.state());assertEquals(2,finalSkipped.currentStepIndex());
+    }
+    @Test void wfRejectReturnAbstainAndActionDeadlines() {
+        ApprovalStep step=wfStep("s",StepMode.REQUIRED_COUNT,2,"a","b","c");WorkflowSnapshot start=wfStart(step);
+        for(ApprovalDecision decision:new ApprovalDecision[]{ApprovalDecision.REJECT,ApprovalDecision.RETURN}){WorkflowSnapshot out=wfEngine.act(start,wfAction("a",decision,MOMENT.plusSeconds(1)));wfPreserved(start,out,decision==ApprovalDecision.REJECT?WorkflowState.REJECTED:WorkflowState.RETURNED,0,MOMENT.plusSeconds(1));assertEquals(Map.of("a",decision),out.currentStep().decisions());}
+        WorkflowSnapshot abstain=wfEngine.act(start,wfAction("a",ApprovalDecision.ABSTAIN,MOMENT));assertEquals(WorkflowState.IN_PROGRESS,abstain.state());assertEquals(1,abstain.currentStep().abstentions());WorkflowSnapshot impossible=wfEngine.act(abstain,wfAction("b",ApprovalDecision.ABSTAIN,MOMENT));assertEquals(WorkflowState.REJECTED,impossible.state());assertEquals(2,impossible.currentStep().abstentions());
+        WorkflowSnapshot deadline=wfStart(changed(step,"deadline",MOMENT.plusSeconds(5)));WorkflowSnapshot equal=wfEngine.act(deadline,wfAction("a",ApprovalDecision.APPROVE,MOMENT.plusSeconds(5)));assertEquals(WorkflowState.IN_PROGRESS,equal.state());WorkflowSnapshot expired=wfEngine.act(deadline,wfAction("stranger",ApprovalDecision.APPROVE,MOMENT.plusSeconds(5).plusNanos(1)));wfPreserved(deadline,expired,WorkflowState.EXPIRED,0,MOMENT.plusSeconds(5).plusNanos(1));assertEquals(deadline.steps(),expired.steps());
+        error("action time cannot precede the previous update",()->wfEngine.act(changed(start,"updatedAt",MOMENT.plusSeconds(1)),wfAction("a",ApprovalDecision.APPROVE,MOMENT)));
+        error("actor is not authorized for the current step",()->wfEngine.act(start,wfAction("stranger",ApprovalDecision.APPROVE,MOMENT)));
+        WorkflowSnapshot self=wfStart(changed(wfStep("s",StepMode.ANY_ONE,1,"owner","a"),"skipRequester",true));error("requester cannot approve this step",()->wfEngine.act(self,wfAction(" owner ",ApprovalDecision.APPROVE,MOMENT)));
+        WorkflowSnapshot selfAllowed=wfStart(wfStep("s",StepMode.ANY_ONE,1,"owner"));assertEquals(WorkflowState.APPROVED,wfEngine.act(selfAllowed,wfAction("owner",ApprovalDecision.APPROVE,MOMENT)).state());
+        error("actor has already decided this step",()->wfEngine.act(abstain,wfAction("a",ApprovalDecision.APPROVE,MOMENT)));
+        assertThrows(NullPointerException.class,()->wfEngine.act(null,wfAction("a",ApprovalDecision.APPROVE,MOMENT)));assertThrows(NullPointerException.class,()->wfEngine.act(start,null));
+    }
+    @Test void wfEngineDelegationRetainsVotesAndEnforcesRestrictions() {
+        ApprovalStep step=wfStep("s",StepMode.REQUIRED_COUNT,2,"a","b","c");WorkflowSnapshot start=wfStart(step);WorkflowSnapshot voted=wfEngine.act(start,wfAction("a",ApprovalDecision.APPROVE,MOMENT.plusSeconds(1)));
+        WorkflowSnapshot delegated=wfEngine.delegate(voted," b "," substitute ",MOMENT.plusSeconds(1));wfPreserved(voted,delegated,WorkflowState.IN_PROGRESS,0,MOMENT.plusSeconds(1));assertEquals(Set.of("a","c","substitute"),delegated.currentStep().step().approverIds());assertEquals(Map.of("a",ApprovalDecision.APPROVE),delegated.currentStep().decisions());assertEquals(Set.of("a","b","c"),voted.currentStep().step().approverIds());assertEquals(WorkflowState.APPROVED,wfEngine.act(delegated,wfAction("substitute",ApprovalDecision.APPROVE,MOMENT.plusSeconds(2))).state());
+        error("delegation time cannot precede the previous update",()->wfEngine.delegate(voted,"b","new",MOMENT));error("actor cannot delegate after making a decision",()->wfEngine.delegate(voted,"a","new",MOMENT.plusSeconds(1)));
+        for(String bad:new String[]{null," "}){error("fromActor must not be blank",()->wfEngine.delegate(start,bad,"new",MOMENT));error("toActor must not be blank",()->wfEngine.delegate(start,"a",bad,MOMENT));}
+        error("delegating actor is not an approver",()->wfEngine.delegate(start,"none","new",MOMENT));error("cannot delegate to the same actor",()->wfEngine.delegate(start,"a","a",MOMENT));error("delegate is already an approver",()->wfEngine.delegate(start,"a","b",MOMENT));
+        WorkflowSnapshot restricted=wfStart(changed(step,"skipRequester",true));error("cannot delegate approval to the requester",()->wfEngine.delegate(restricted,"a","owner",MOMENT));
+        WorkflowSnapshot permitted=wfEngine.delegate(start,"a","owner",MOMENT);assertTrue(permitted.currentStep().step().canApprove("owner"));
+        WorkflowSnapshot blocked=wfStart(changed(step,"delegationAllowed",false));error("delegation is not allowed for this step",()->wfEngine.delegate(blocked,"a","new",MOMENT));
+        assertThrows(NullPointerException.class,()->wfEngine.delegate(null,"a","new",MOMENT));assertThrows(NullPointerException.class,()->wfEngine.delegate(start,"a","new",null));
+    }
+    @Test void wfWithdrawalRulesDependOnUrgencyAndProgress() {
+        ApprovalStep one=wfStep("one",StepMode.ANY_ONE,1,"a"),two=wfStep("two",StepMode.ANY_ONE,1,"b");WorkflowSnapshot start=wfStart(one,two);
+        WorkflowSnapshot withdrawn=wfEngine.withdraw(start," owner ",MOMENT);wfPreserved(start,withdrawn,WorkflowState.WITHDRAWN,0,MOMENT);assertEquals(start.steps(),withdrawn.steps());
+        WorkflowSnapshot moved=wfEngine.act(start,wfAction("a",ApprovalDecision.APPROVE,MOMENT.plusSeconds(1)));WorkflowSnapshot after=wfEngine.withdraw(moved,"owner",MOMENT.plusSeconds(1));wfPreserved(moved,after,WorkflowState.WITHDRAWN,1,MOMENT.plusSeconds(1));
+        WorkflowSnapshot urgent=changed(start,"urgent",true);assertEquals(WorkflowState.WITHDRAWN,wfEngine.withdraw(urgent,"owner",MOMENT).state());error("urgent workflow cannot be withdrawn after first approval",()->wfEngine.withdraw(changed(moved,"urgent",true),"owner",MOMENT.plusSeconds(1)));
+        error("withdrawal is disabled for this workflow",()->wfEngine.withdraw(changed(start,"withdrawalAllowed",false),"owner",MOMENT));error("only the requester may withdraw the workflow",()->wfEngine.withdraw(start,"a",MOMENT));
+        for(String actor:new String[]{null," "})error("actorId must not be blank",()->wfEngine.withdraw(start,actor,MOMENT));error("withdrawal time cannot precede the previous update",()->wfEngine.withdraw(moved,"owner",MOMENT));
+        assertThrows(NullPointerException.class,()->wfEngine.withdraw(null,"owner",MOMENT));assertThrows(NullPointerException.class,()->wfEngine.withdraw(start,"owner",null));
+    }
+    @Test void wfCancellationAndAutomaticExpiryUseExactTimeBoundaries() {
+        WorkflowSnapshot start=wfStart(wfStep("s",StepMode.ANY_ONE,1,"a"));WorkflowSnapshot later=changed(start,"updatedAt",MOMENT.plusSeconds(2));WorkflowSnapshot cancelled=wfEngine.cancel(later,true," valid ",MOMENT.plusSeconds(2));wfPreserved(later,cancelled,WorkflowState.CANCELLED,0,MOMENT.plusSeconds(2));assertEquals(later.steps(),cancelled.steps());
+        error("workflow cancellation requires administrator role",()->wfEngine.cancel(start,false,"valid",MOMENT));for(String reason:new String[]{null," "," abcd "})error("cancellation reason must contain at least five characters",()->wfEngine.cancel(start,true,reason,MOMENT));error("cancellation time cannot precede the previous update",()->wfEngine.cancel(later,true,"valid",MOMENT));
+        assertSame(start,wfEngine.expireIfNecessary(start,MOMENT.plusSeconds(100)));assertSame(start,wfEngine.expireIfNecessary(start,MOMENT.minusSeconds(1)));
+        WorkflowSnapshot timed=wfStart(changed(wfStep("s",StepMode.ANY_ONE,1,"a"),"deadline",MOMENT.plusSeconds(10)));assertSame(timed,wfEngine.expireIfNecessary(timed,MOMENT.plusSeconds(9)));assertSame(timed,wfEngine.expireIfNecessary(timed,MOMENT.plusSeconds(10)));
+        Instant late=MOMENT.plusSeconds(10).plusNanos(1);WorkflowSnapshot expired=wfEngine.expireIfNecessary(timed,late);wfPreserved(timed,expired,WorkflowState.EXPIRED,0,late);assertEquals(timed.steps(),expired.steps());
+        assertThrows(NullPointerException.class,()->wfEngine.cancel(null,true,"valid",MOMENT));assertThrows(NullPointerException.class,()->wfEngine.cancel(start,true,"valid",null));assertThrows(NullPointerException.class,()->wfEngine.expireIfNecessary(null,MOMENT));assertThrows(NullPointerException.class,()->wfEngine.expireIfNecessary(start,null));
+    }
+    @Test void wfEveryTerminalStateRejectsMutationsAndExpirationIsIdempotent() {
+        WorkflowSnapshot start=wfStart(wfStep("s",StepMode.ANY_ONE,1,"a"));
+        for(WorkflowState state:EnumSet.of(WorkflowState.APPROVED,WorkflowState.REJECTED,WorkflowState.RETURNED,WorkflowState.WITHDRAWN,WorkflowState.CANCELLED,WorkflowState.EXPIRED)) {
+            WorkflowSnapshot terminal=changed(start,"state",state);
+            error("terminal workflow cannot accept actions",()->wfEngine.act(terminal,wfAction("a",ApprovalDecision.APPROVE,MOMENT)));
+            error("terminal workflow cannot accept actions",()->wfEngine.delegate(terminal,"a","b",MOMENT));error("terminal workflow cannot accept actions",()->wfEngine.withdraw(terminal,"owner",MOMENT));
+            error("terminal workflow cannot be cancelled",()->wfEngine.cancel(terminal,true,"valid",MOMENT));assertSame(terminal,wfEngine.expireIfNecessary(terminal,MOMENT.plusSeconds(100)));
+        }
+        WorkflowSnapshot progress=changed(start,"state",WorkflowState.IN_PROGRESS);assertEquals(WorkflowState.APPROVED,wfEngine.act(progress,wfAction("a",ApprovalDecision.APPROVE,MOMENT)).state());
+    }

@@ -1,0 +1,102 @@
+    @Test
+    void conditionalFunctionsChooseTheSpecifiedValue() {
+        var branch = net.mooctest.expression.engine.FunctionPackage.BRANCH;
+        String[] names = {"ifEq", "ifGt", "ifLt", "ifGe", "ifLe"};
+        double[][] results = {{23, 11, 23}, {23, 23, 11}, {11, 23, 23}, {23, 11, 11}, {11, 11, 23}};
+        for (int i = 0; i < names.length; i++) {
+            var fn = (net.mooctest.expression.engine.ManyToOneNumberFunction) branch.getFunctionByNameNoCheck(names[i]);
+            for (int x = 0; x <= 2; x++) {
+                assertEquals(results[i][x], fn.run(x, 1, 11, 23), 1e-12);
+            }
+            assertThrows(UnsupportedOperationException.class, () -> fn.run(1, 1, 11));
+        }
+    }
+
+    @Test
+    void mathPackageUsesNumericArguments() {
+        var math = net.mooctest.expression.engine.FunctionPackage.MATH;
+        var examples = java.util.Map.of(
+                "sum", new double[]{10, 7, -2, 5}, "pow", new double[]{81, 3, 4},
+                "sqrt", new double[]{7, 49}, "factorial", new double[]{120, 5},
+                "sin", new double[]{0.5, Math.PI / 6}, "cos", new double[]{0.5, Math.PI / 3},
+                "tan", new double[]{1, Math.PI / 4}, "cot", new double[]{1, Math.PI / 4},
+                "sec", new double[]{2, Math.PI / 3}, "csc", new double[]{2, Math.PI / 6});
+        examples.forEach((name, sample) -> {
+            var fn = (net.mooctest.expression.engine.ManyToOneNumberFunction) math.getFunctionByNameNoCheck(name);
+            assertEquals(sample[0], fn.run(java.util.Arrays.copyOfRange(sample, 1, sample.length)), 1e-10, name);
+        });
+        assertNull(math.getFunctionByNameNoCheck("unknown"));
+    }
+
+    @Test
+    void complexCalculatorSeparatesParenthesizedRealAndImaginaryParts() throws Exception {
+        String label = "RewriteComplex";
+        var calc = net.mooctest.expression.engine.ComplexCalculation.getInstance(label);
+        try {
+            calc.check("(2+3)+4i");
+            var positive = calc.compile(" (2+3) + 4i ", true);
+            assertEquals(5.0, positive.calculation(true).getResult());
+            assertEquals(new net.mooctest.expression.engine.CalculationComplexResults(0, 5, 4, label).toString(),
+                    positive.calculation(true).toString());
+            assertTrue(positive.isUnBigDecimal());
+            assertTrue(positive.isBigDecimal());
+            assertNotNull(positive.getFunctionExpression1());
+            assertNotNull(positive.getFunctionExpression2());
+            assertThrows(net.mooctest.expression.engine.WrongFormat.class, () -> calc.check("7+8"));
+            assertThrows(RuntimeException.class, () -> calc.check("7"));
+            assertThrows(UnsupportedOperationException.class, () -> calc.explain("7+8", true));
+        } finally {
+            net.mooctest.expression.engine.CalculationManagement.unregister(label);
+        }
+    }
+
+    @Test
+    void compilerRejectsIncompleteSignaturesBeforeCalculating() {
+        var malformed = java.util.List.of("f(a)", "f(a)=a=1", "f=a", "f2(a)=a");
+        for (var signature : malformed) {
+            assertThrows(IllegalArgumentException.class,
+                    () -> net.mooctest.expression.engine.JvmExpressionFunction.convertToStaticMethodSource(signature));
+        }
+        assertEquals("public static double weighted(double a, double b) { return 3*a+b; }",
+                net.mooctest.expression.engine.JvmExpressionFunction.convertToStaticMethodSource("weighted(a,b)=3*a+b"));
+        assertThrows(IllegalArgumentException.class,
+                () -> net.mooctest.expression.engine.EquationSolver.compile("x+2", "isolated"));
+        assertThrows(NumberFormatException.class,
+                () -> net.mooctest.expression.engine.EquationSolver.compile("x+2=abc", "isolated"));
+    }
+
+    @Test
+    void pricePolicyEnforcesBoundsBeforeScaling() {
+        var policy = new net.mooctest.course.service.PricePolicy();
+        var invalid = new java.math.BigDecimal[]{null, new java.math.BigDecimal("-0.001"), new java.math.BigDecimal("99999.991")};
+        for (var price : invalid) {
+            var error = assertThrows(net.mooctest.error.BusinessException.class, () -> policy.normalizePrice(price));
+            assertEquals(net.mooctest.error.ErrorCode.INVALID_PRICE, error.code());
+        }
+        assertEquals(new java.math.BigDecimal("99999.99"), policy.normalizePrice(new java.math.BigDecimal("99999.99")));
+        assertEquals(new java.math.BigDecimal("0.00"), policy.normalizePrice(java.math.BigDecimal.ZERO));
+        var price = new java.math.BigDecimal("25.35");
+        assertEquals(new java.math.BigDecimal("5.07"), policy.discountedPrice(price, 80));
+        assertEquals(price, policy.discountedPrice(price, 0));
+        for (int invalidDiscount : new int[]{-1, 81}) {
+            assertEquals(net.mooctest.error.ErrorCode.INVALID_DISCOUNT, assertThrows(net.mooctest.error.BusinessException.class,
+                    () -> policy.discountedPrice(price, invalidDiscount)).code());
+        }
+    }
+
+    @Test
+    void restHandlerPreservesErrorCodeAndDetails() {
+        var handler = new net.mooctest.course.web.RestExceptionHandler();
+        var codes = net.mooctest.error.ErrorCode.class;
+        var expected = java.util.Map.of(
+                "COURSE_NOT_FOUND", 404, "DUPLICATE_COURSE_TITLE", 409, "COURSE_ALREADY_PUBLISHED", 409,
+                "COURSE_HAS_NO_CHAPTERS", 422, "INVALID_COURSE_TITLE", 400, "INVALID_PRICE", 400, "INVALID_DISCOUNT", 400);
+        expected.forEach((name, status) -> {
+            var response = handler.handleBusinessException(new net.mooctest.error.BusinessException(Enum.valueOf(codes, name), "issue"));
+            assertEquals(status.intValue(), response.getStatusCode().value());
+            assertFalse(response.getBody().success());
+            assertNull(response.getBody().data());
+            assertEquals(name, response.getBody().error().code());
+            assertEquals("issue", response.getBody().error().message());
+        });
+    }

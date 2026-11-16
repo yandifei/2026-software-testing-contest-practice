@@ -1,0 +1,170 @@
+    @Test
+    void primitiveOperatorsWithUnequalOperands() {
+        var operators = new char[]{'+', '-', '*', '/', '%', '^'};
+        var answers = new double[]{11, 5, 24, 8.0 / 3, 2, 512};
+        for (int i = 0; i < operators.length; i++) {
+            assertEquals(answers[i], net.mooctest.expression.engine.NumberUtils.calculation(operators[i], 8, 3), 1e-12);
+        }
+        assertThrows(net.mooctest.expression.engine.AbnormalOperation.class,
+                () -> net.mooctest.expression.engine.NumberUtils.calculation('?', 8, 3));
+    }
+
+    @Test
+    void comparisonSeparatesEqualityFromOrdering() {
+        String[] operators = {"<", ">", "<=", ">=", "==", "=", "!=", "<>"};
+        boolean[][] expected = {
+            {true, false, true, false, false, false, true, true},
+            {false, false, true, true, true, true, false, false},
+            {false, true, false, true, false, false, true, true}
+        };
+        for (int i = 0; i < expected.length; i++) {
+            for (int j = 0; j < operators.length; j++) {
+                assertEquals(expected[i][j], net.mooctest.expression.engine.NumberUtils.ComparisonOperation(operators[j], i, 1), operators[j]);
+            }
+        }
+    }
+
+    @Test
+    void groupedArithmeticAgreesWithWorkedExamples() {
+        String name = "RewriteArithmetic";
+        var calculator = net.mooctest.expression.engine.BracketsCalculation2.getInstance(name);
+        try {
+            assertEquals(19.0, calculator.calculation("1+(2+4)*3").getResult(), 1e-10);
+            assertEquals(6.0, calculator.calculation("18/(1+2)").getResult(), 1e-10);
+            assertEquals(2.0, calculator.calculation("7-2-3").getResult(), 1e-10);
+            assertEquals(21.0, calculator.calculation("3*(4+(3))").getResult(), 1e-10);
+            assertThrows(net.mooctest.expression.engine.WrongFormat.class, () -> calculator.check("2*(3+4"));
+        } finally {
+            net.mooctest.expression.engine.CalculationManagement.unregister(name);
+        }
+    }
+
+    @Test
+    void engineSeparatesTopLevelDelimiters() {
+        assertEquals(java.util.List.of("a", "(b,c)", "d"), net.mooctest.expression.engine.StrUtils.splitByCharWhereNoB("a,(b,c),d", ','));
+        assertEquals(java.util.List.of("a", "(b", "c)", "d"), net.mooctest.expression.engine.StrUtils.splitByChar("a,(b,c),d", ','));
+        assertTrue(net.mooctest.expression.engine.StrUtils.containsNumber("a2Z"));
+        assertFalse(net.mooctest.expression.engine.StrUtils.containsNumber("az"));
+        assertEquals('z', net.mooctest.expression.engine.StrUtils.containsEnChar("12z9"));
+        assertNull(net.mooctest.expression.engine.StrUtils.containsEnChar("123"));
+    }
+
+    @Test
+    void namedExpressionFunctionAcceptsNumericArgumentsAndEvaluatesBody() throws Exception {
+        var fn = net.mooctest.expression.engine.ExpressionFunction.parse("delta(a,b)=a*a-b");
+        assertEquals("delta", fn.getName());
+        assertEquals(2, fn.getParamSize());
+        assertEquals(21.0, fn.run(5, 4), 1e-10);
+        assertEquals(12.0, fn.run(4, 4), 1e-10);
+        assertThrows(UnsupportedOperationException.class, () -> fn.run(5));
+        assertThrows(net.mooctest.expression.engine.WrongFormat.class,
+                () -> net.mooctest.expression.engine.ExpressionFunction.parse("delta(a,b)=a+z"));
+    }
+
+    @Test
+    void builtInTimeConversionsUseDistinctUnits() {
+        var dates = net.mooctest.expression.engine.FunctionPackage.DATE;
+        String[] units = {"S", "Min", "Hour", "Day", "Week", "Month", "Year"};
+        long[] millis = {1000L, 60000L, 3600000L, 86400000L, 604800000L, 2592000000L, 31536000000L};
+        for (int i = 0; i < units.length; i++) {
+            String unit = units[i];
+            var toUnit = (net.mooctest.expression.engine.ManyToOneNumberFunction) dates.getFunctionByNameNoCheck("msTo" + unit);
+            String prefix = Character.toLowerCase(unit.charAt(0)) + unit.substring(1);
+            var toMillis = (net.mooctest.expression.engine.ManyToOneNumberFunction) dates.getFunctionByNameNoCheck(prefix + "ToMs");
+            assertEquals(1.5, toUnit.run(1.5 * millis[i]), 1e-12, unit);
+            assertEquals(-2.0 * millis[i], toMillis.run(-2), 1e-12, unit);
+        }
+    }
+
+    @Test
+    void directCourseLifecyclePreservesIdentityAndStoredState() {
+        var repo = new net.mooctest.course.adapter.InMemoryCourseRepository();
+        var clock = java.time.Clock.fixed(java.time.Instant.EPOCH, java.time.ZoneOffset.UTC);
+        net.mooctest.course.port.ChapterRepository chapters = id -> java.util.List.of(new net.mooctest.course.domain.Chapter("intro", id, "First", 1));
+        var service = new net.mooctest.course.service.CourseService(repo, chapters, () -> "linear", new net.mooctest.course.service.PricePolicy(), clock);
+        var first = service.createCourse("  Matrix    Theory  ", new java.math.BigDecimal("9.995"));
+        assertEquals(new net.mooctest.course.domain.Course("linear", "Matrix Theory", new java.math.BigDecimal("10.00"),
+                net.mooctest.course.domain.CourseStatus.DRAFT, java.time.Instant.EPOCH), first);
+        var published = service.publishCourse("linear");
+        assertEquals(net.mooctest.course.domain.CourseStatus.PUBLISHED, published.status());
+        assertEquals(published, repo.findById("linear").orElseThrow());
+        var duplicate = assertThrows(net.mooctest.error.BusinessException.class,
+                () -> service.createCourse("matrix theory", java.math.BigDecimal.ZERO));
+        assertEquals(net.mooctest.error.ErrorCode.DUPLICATE_COURSE_TITLE, duplicate.code());
+        var catalog = new net.mooctest.course.service.CatalogService(service, chapters,
+                ids -> java.util.List.of(new net.mooctest.course.domain.Video("formula", "intro", "Formula", 45, 1)));
+        assertEquals(new net.mooctest.course.domain.CourseCatalog("linear", java.util.List.of(
+            new net.mooctest.course.domain.ChapterView("intro", "First", java.util.List.of(
+                new net.mooctest.course.domain.VideoView("formula", "Formula", 45))))), catalog.getCatalog("linear"));
+    }
+    @Test
+    void intervalCalculatorsEvaluateEndpointsAndSteps() throws Exception {
+        String sumName = "RewriteSums";
+        String productName = "RewriteProducts";
+        var sum = net.mooctest.expression.engine.FastSumOfIntervalsBrackets.getInstance(sumName);
+        var product = net.mooctest.expression.engine.FastMultiplyOfIntervalsBrackets.getInstance(productName);
+        try {
+            sum.check("1+1,5");
+            assertTrue(sum.isCache("1+1,5"));
+            assertEquals(14, sum.calculation("1+1,5").getResult(), 1e-12);
+            assertEquals(14, sum.calculation("1+1,5").getResult(), 1e-12);
+            assertEquals(4, sum.calculation("4", "4").getResult(), 1e-12);
+            assertEquals(18.0, sum.compile("3,6", true).calculation(true).getResult());
+            assertEquals(48, product.calculation("2,6").getResult(), 1e-12);
+            assertEquals(48.0, product.compile("2,6", true).calculation(true).getResult());
+            sum.setStartSharedPool(false);
+            assertFalse(sum.isStartSharedPool());
+            assertEquals(7, sum.calculation("3,4").getResult(), 1e-12);
+            sum.clearCache();
+            assertFalse(sum.isCache("1+1,5"));
+            assertThrows(net.mooctest.expression.engine.WrongFormat.class, () -> sum.check("3"));
+            assertThrows(net.mooctest.expression.engine.ExtractException.class, () -> net.mooctest.expression.engine.FastMultiplyOfIntervalsBrackets.getInstance(sumName));
+        } finally {
+            net.mooctest.expression.engine.CalculationManagement.unregister(sumName);
+            net.mooctest.expression.engine.CalculationManagement.unregister(productName);
+        }
+    }
+
+    @Test
+    void functionCalculatorResolvesNestedParametersAndClearsItsCache() throws Exception {
+        String label = "RewriteFunctions";
+        String name = "rewritecube";
+        var fn = net.mooctest.expression.engine.ExpressionFunction.parse(name + "(a)=a*a*a");
+        var calculator = net.mooctest.expression.engine.FunctionFormulaCalculation2.getInstance(label);
+        assertTrue(net.mooctest.expression.engine.CalculationManagement.register(fn));
+        try {
+            String expression = name + "(2)+1";
+            calculator.check(expression);
+            assertTrue(calculator.isCache(expression));
+            calculator.check(expression);
+            assertEquals(9, calculator.calculation(expression).getResult(), 1e-12);
+            assertEquals(9, calculator.calculation(expression).getResult(), 1e-12);
+            assertEquals(512, calculator.calculation(name + "(" + name + "(2))").getResult(), 1e-12);
+            assertEquals(8, (Double) calculator.explain(name + "(2)", true).getResult(), 1e-12);
+            assertEquals(6, calculator.calculation("6").getResult(), 1e-12);
+            calculator.clearCache();
+            assertFalse(calculator.isCache(expression));
+            calculator.setStartSharedPool(false);
+            assertFalse(calculator.isStartSharedPool());
+            assertEquals(28, calculator.calculation(name + "(3)+1").getResult(), 1e-12);
+            assertThrows(net.mooctest.expression.engine.WrongFormat.class, () -> calculator.check(name + "(2"));
+        } finally {
+            net.mooctest.expression.engine.CalculationManagement.unregisterF(name);
+            net.mooctest.expression.engine.CalculationManagement.unregister(label);
+        }
+    }
+
+    @Test
+    void precisionAndComparisonCalculatorsKeepTheirResultTypes() {
+        String name = "RewriteBoolean";
+        var calculator = net.mooctest.expression.engine.BooleanCalculation2.getInstance(name);
+        try {
+            assertEquals(true, calculator.calculation("(2+3)<=5", true).getResult());
+            assertEquals(false, calculator.calculation("2+3<5", true).getResult());
+            assertEquals(true, calculator.calculation("4<>5", true).getResult());
+            assertEquals(false, calculator.calculation("4!=4", true).getResult());
+        } finally {
+            net.mooctest.expression.engine.CalculationManagement.unregister(name);
+        }
+    }
+

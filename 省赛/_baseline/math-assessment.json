@@ -1,0 +1,686 @@
+{
+ "root": "B:\\软件测试大赛\\省赛\\原始项目\\math-assessment",
+ "count": 136,
+ "files": [
+  {
+   "path": "pom.xml",
+   "bytes": 8799,
+   "sha256": "9a1aeccf19c9410911dd594d45f75ab80d9f7bec294c8baeac04570d490cccae"
+  },
+  {
+   "path": "src/main/java/net/mooctest/common/ApiError.java",
+   "bytes": 86,
+   "sha256": "fdc79702f6afb9dd3880d41547874f4669b806e713c7257680c732f67a2a7c4b"
+  },
+  {
+   "path": "src/main/java/net/mooctest/common/ApiResponse.java",
+   "bytes": 377,
+   "sha256": "abc85b71ec84e2c39a7d7b023fadc30eefdb9b3efd086a316dd873b2e9c81065"
+  },
+  {
+   "path": "src/main/java/net/mooctest/config/TimeConfiguration.java",
+   "bytes": 296,
+   "sha256": "62791ff328ffdbbc77727633056ecfb778ceb529ff7c200c827e28933f49352f"
+  },
+  {
+   "path": "src/main/java/net/mooctest/course/adapter/InMemoryChapterRepository.java",
+   "bytes": 397,
+   "sha256": "26bfe20236ffab9113b90d8883e9e62018b89ab076723a7db208f737edc82c81"
+  },
+  {
+   "path": "src/main/java/net/mooctest/course/adapter/InMemoryCourseRepository.java",
+   "bytes": 884,
+   "sha256": "39853b3cbd1ac202cf5e11deffefecb02f2324ba07fe15b88013726cf271a1ec"
+  },
+  {
+   "path": "src/main/java/net/mooctest/course/adapter/InMemoryVideoRepository.java",
+   "bytes": 418,
+   "sha256": "677cfce622dfc33498300e9845d61284fcfef24a1fdd74b11d4892965a57f009"
+  },
+  {
+   "path": "src/main/java/net/mooctest/course/adapter/UuidGenerator.java",
+   "bytes": 317,
+   "sha256": "099225a978b515fe0450d091347bfefe7d6f43ed1470b2e48179af706295a424"
+  },
+  {
+   "path": "src/main/java/net/mooctest/course/domain/Chapter.java",
+   "bytes": 120,
+   "sha256": "75716b7e85661a369e81333647b48a8f12be00ca862e45e556a1f783cc0b61bd"
+  },
+  {
+   "path": "src/main/java/net/mooctest/course/domain/ChapterView.java",
+   "bytes": 210,
+   "sha256": "a02f5c81a84edf9203ff12793822f8d224f3a16bd9108481e011a200c7ab7476"
+  },
+  {
+   "path": "src/main/java/net/mooctest/course/domain/Course.java",
+   "bytes": 1438,
+   "sha256": "193317cde9c8e7f91604d1aae0e007459345303792a3f342ac804dee398f0583"
+  },
+  {
+   "path": "src/main/java/net/mooctest/course/domain/CourseCatalog.java",
+   "bytes": 214,
+   "sha256": "71fb9721f9a486473b5dce7aadc3b3062932931f85281d0e5a7ce4eb4a9277e0"
+  },
+  {
+   "path": "src/main/java/net/mooctest/course/domain/CourseStatus.java",
+   "bytes": 105,
+   "sha256": "2080581ffa4ce2226cddb9f85c8ee1e4db13954225943bfd0afd2a29ee874e67"
+  },
+  {
+   "path": "src/main/java/net/mooctest/course/domain/Video.java",
+   "bytes": 140,
+   "sha256": "ef2434af54b9e382a80315e2d7fce5bc7c59a15b5541fec8735b35107fd45047"
+  },
+  {
+   "path": "src/main/java/net/mooctest/course/domain/VideoView.java",
+   "bytes": 111,
+   "sha256": "cac6cd999cb89b4050c205b93b51fa70bb20783565c5f2f949c46d04c5c6c1d0"
+  },
+  {
+   "path": "src/main/java/net/mooctest/course/port/ChapterRepository.java",
+   "bytes": 194,
+   "sha256": "46539e9c00d9fcb6fc657276e6763d9293ab5150b8ea0dce7301934a3b07caf9"
+  },
+  {
+   "path": "src/main/java/net/mooctest/course/port/CourseRepository.java",
+   "bytes": 272,
+   "sha256": "3d03f5c2213c3fcab46b7c017109f30e084c2401dd46331085e26917bc27e734"
+  },
+  {
+   "path": "src/main/java/net/mooctest/course/port/IdGenerator.java",
+   "bytes": 111,
+   "sha256": "007ad2916d28d42c4eeb87932facfaf7c03be2c2ab748156b277b6e23be57ebb"
+  },
+  {
+   "path": "src/main/java/net/mooctest/course/port/VideoRepository.java",
+   "bytes": 219,
+   "sha256": "9777150a5b9f8c1adb68248be3fb30d35437ca6e77bdc40b595d43d3a039b152"
+  },
+  {
+   "path": "src/main/java/net/mooctest/course/service/CatalogService.java",
+   "bytes": 2789,
+   "sha256": "fc65498634f4aed7c7b456086ead624591fedf30ef73350bcef046dfca36235a"
+  },
+  {
+   "path": "src/main/java/net/mooctest/course/service/CourseService.java",
+   "bytes": 3365,
+   "sha256": "d9d9d5b5647c9d1db9e2188dee4ad333905c1d817c2c902898d81afda805fb51"
+  },
+  {
+   "path": "src/main/java/net/mooctest/course/service/PricePolicy.java",
+   "bytes": 1394,
+   "sha256": "b92420002b624b99022186e1ba9dba773bc24f211bd35411104b30741171231a"
+  },
+  {
+   "path": "src/main/java/net/mooctest/course/web/CourseController.java",
+   "bytes": 2036,
+   "sha256": "f394f7bc00546bb4bd94bb8b3025e7de9416f617881b1fd819da969c5a7461a3"
+  },
+  {
+   "path": "src/main/java/net/mooctest/course/web/CreateCourseRequest.java",
+   "bytes": 889,
+   "sha256": "abfe8a5dee098b238e279c9f5e67d255ad9d3cc925bad48bcf9b2fe681ed5464"
+  },
+  {
+   "path": "src/main/java/net/mooctest/course/web/RestExceptionHandler.java",
+   "bytes": 1887,
+   "sha256": "f93c04d211df4798c165176f78fdd6f93c8dfe6af38e4da26963ac646a220df2"
+  },
+  {
+   "path": "src/main/java/net/mooctest/enrollment/adapter/EmptyEnrollmentHistory.java",
+   "bytes": 1005,
+   "sha256": "bd5223ffa4301d41ec232b4a9c7c87bf20910208a2245c7e3e707bc27e277d08"
+  },
+  {
+   "path": "src/main/java/net/mooctest/enrollment/domain/CourseOffering.java",
+   "bytes": 1262,
+   "sha256": "6f5486bdab69f80146a04f8924375a9cc7a4ed3119e6fc8533b44196f57108a2"
+  },
+  {
+   "path": "src/main/java/net/mooctest/enrollment/domain/EnrollmentCourseStatus.java",
+   "bytes": 131,
+   "sha256": "2b0b0d5c29e12fc7e7d4d4e85a17d85d5c74a44da08df8ddd297e9942a2e6ed8"
+  },
+  {
+   "path": "src/main/java/net/mooctest/enrollment/domain/EnrollmentDecision.java",
+   "bytes": 518,
+   "sha256": "7991a0f872a57701e4e8edf4d4002a1174a50e86f43698405e214cd7dce803b5"
+  },
+  {
+   "path": "src/main/java/net/mooctest/enrollment/domain/EnrollmentOutcome.java",
+   "bytes": 137,
+   "sha256": "493fdf239df05491dc4b91c2b011595303b6a67920f17310eea61e97d4c2f9e7"
+  },
+  {
+   "path": "src/main/java/net/mooctest/enrollment/domain/EnrollmentRequest.java",
+   "bytes": 414,
+   "sha256": "978d150252c21a5004c444b16a9f08580ad4f181168c9d0e2fa6ba0d6c55dab1"
+  },
+  {
+   "path": "src/main/java/net/mooctest/enrollment/domain/StudentProfile.java",
+   "bytes": 582,
+   "sha256": "d0881a08573d158a7213746c66d29c173bd05632ba690c8e0733f9125a3cea7f"
+  },
+  {
+   "path": "src/main/java/net/mooctest/enrollment/port/EnrollmentHistory.java",
+   "bytes": 516,
+   "sha256": "ee9ffd072e37417b0db025c79ddb8fedff77178831ef9bacd0c460aff25e79f0"
+  },
+  {
+   "path": "src/main/java/net/mooctest/enrollment/service/EnrollmentEligibilityService.java",
+   "bytes": 18495,
+   "sha256": "6b0a9571680ee60948d130f559d83a6f4bfb6f3af927a205bb5586e7a3699fdb"
+  },
+  {
+   "path": "src/main/java/net/mooctest/error/BusinessException.java",
+   "bytes": 384,
+   "sha256": "50ffd29a90dcf99d50d5f1d5e2060890b5ab12dc376a8d09f0b7183a2f7c7f96"
+  },
+  {
+   "path": "src/main/java/net/mooctest/error/ErrorCode.java",
+   "bytes": 229,
+   "sha256": "a25f16b40cac9bc9062f93c633ccad22a9b7a1853ceaeeff13007791e7af6bc3"
+  },
+  {
+   "path": "src/main/java/net/mooctest/expression/engine/AbnormalOperation.java",
+   "bytes": 2447,
+   "sha256": "f7ec4b32d7d978e1282a8409613791df46ae68ba6a079520a59cbea5b66db9af"
+  },
+  {
+   "path": "src/main/java/net/mooctest/expression/engine/BooleanCalculation.java",
+   "bytes": 7344,
+   "sha256": "a46d410984e10fa18a980bf403042e058bb422a5954ffd5fc3b6d2268769ac83"
+  },
+  {
+   "path": "src/main/java/net/mooctest/expression/engine/BooleanCalculation2.java",
+   "bytes": 5125,
+   "sha256": "891b96f2023e20dd82df6de5ebf1aa80e4cccdafce019be484a2e936d4458036"
+  },
+  {
+   "path": "src/main/java/net/mooctest/expression/engine/BracketsCalculation.java",
+   "bytes": 2775,
+   "sha256": "4805d43b899606e07524557b5c843535d665d036d477c748417ecb733e6607c7"
+  },
+  {
+   "path": "src/main/java/net/mooctest/expression/engine/BracketsCalculation2.java",
+   "bytes": 7023,
+   "sha256": "82089bbda75a55aa6c9fd7da746bb2328b637690d625f59e7f0d580221f868b1"
+  },
+  {
+   "path": "src/main/java/net/mooctest/expression/engine/BracketsExpression.java",
+   "bytes": 6753,
+   "sha256": "2b86d0fe150a4f3b821d64e52df95a90a871ee30dfb7f56a3b398d97595864c0"
+  },
+  {
+   "path": "src/main/java/net/mooctest/expression/engine/Calculation.java",
+   "bytes": 4452,
+   "sha256": "2acb845966f7ae4cfa694a0ed788ab35f71dcda1a985230376aff0c0eb93e035"
+  },
+  {
+   "path": "src/main/java/net/mooctest/expression/engine/CalculationBigDecimalResults.java",
+   "bytes": 1090,
+   "sha256": "1939bfb5472146d4fe902d9b5b56fa0f599e5f269342461c7822dca10e9bd306"
+  },
+  {
+   "path": "src/main/java/net/mooctest/expression/engine/CalculationBooleanResults.java",
+   "bytes": 3374,
+   "sha256": "7aedbbf73f5df958ae8add02a82a9d06695d46b3ef309ad379928afe0fea877d"
+  },
+  {
+   "path": "src/main/java/net/mooctest/expression/engine/CalculationComplexResults.java",
+   "bytes": 1759,
+   "sha256": "cb3a2939d596f0cb5f288cfc1ecb58f14995c75823111940cc508b77ff72fbb4"
+  },
+  {
+   "path": "src/main/java/net/mooctest/expression/engine/CalculationManagement.java",
+   "bytes": 11732,
+   "sha256": "6c7a36f10b72ba137634dcaebab6893f52fba0a4459edb24388edae8080b6a1d"
+  },
+  {
+   "path": "src/main/java/net/mooctest/expression/engine/CalculationNumberResults.java",
+   "bytes": 2556,
+   "sha256": "c4adb0780ebfcf0f4718529842318e639602d66d6fb7bf532f6e9105bd04db1a"
+  },
+  {
+   "path": "src/main/java/net/mooctest/expression/engine/CalculationOptimized.java",
+   "bytes": 1506,
+   "sha256": "fac46439bbcd1dcca16548f8a4b2481613714ebac73ea4a7ac64b18053001c76"
+  },
+  {
+   "path": "src/main/java/net/mooctest/expression/engine/CalculationResults.java",
+   "bytes": 3846,
+   "sha256": "f1dfbc6ef1e540d7510d7de0b351754353741ab6e0da482185c364a6f92ca3b5"
+  },
+  {
+   "path": "src/main/java/net/mooctest/expression/engine/CloneExpression.java",
+   "bytes": 289,
+   "sha256": "061c0ea0f1fa07eee9d847027fce679f0b14fe06dfbf5807d5f5bdbe1fcadf7c"
+  },
+  {
+   "path": "src/main/java/net/mooctest/expression/engine/CompileCalculation.java",
+   "bytes": 2567,
+   "sha256": "1195c220304edd3a6e6c65ec69411a7c7d64054cb3c9d4792fd88de127b6e050"
+  },
+  {
+   "path": "src/main/java/net/mooctest/expression/engine/ComplexCalculation.java",
+   "bytes": 8162,
+   "sha256": "1031ef57da64d51b378bc1c66bae4875dd72ccaea3f8b36e423916668a562a5f"
+  },
+  {
+   "path": "src/main/java/net/mooctest/expression/engine/ComplexExpression.java",
+   "bytes": 6624,
+   "sha256": "3678884b544962d65ebaac7eae0cf307a07ac8652c0b64fb71ce4a2ca08b7718"
+  },
+  {
+   "path": "src/main/java/net/mooctest/expression/engine/ConstantRegion.java",
+   "bytes": 3520,
+   "sha256": "84b549b20a4334eac1058831b1de2b49bc9f28c568b462fb354329cd58c8614a"
+  },
+  {
+   "path": "src/main/java/net/mooctest/expression/engine/CumulativeCalculation.java",
+   "bytes": 7482,
+   "sha256": "d674fe5746797b03ccc7758ea2f7e48b00d79828f674e449a6b045d6303fa46e"
+  },
+  {
+   "path": "src/main/java/net/mooctest/expression/engine/DynamicClassLoader.java",
+   "bytes": 809,
+   "sha256": "7003364f30d5cb28a1571dc13b99cd44eaf6529baa9da0f7d101ad2033333c19"
+  },
+  {
+   "path": "src/main/java/net/mooctest/expression/engine/DynamicFunctionCompiler.java",
+   "bytes": 4701,
+   "sha256": "1b339f8db1491c92951f7fa336499ea9640d35a7187b95befebf45860c213c4c"
+  },
+  {
+   "path": "src/main/java/net/mooctest/expression/engine/EquationSolver.java",
+   "bytes": 13060,
+   "sha256": "4940d55c447084446f68ca7152ef8715d388c976839ccab6e97855925b87dc57"
+  },
+  {
+   "path": "src/main/java/net/mooctest/expression/engine/EquationSolverExpression.java",
+   "bytes": 8036,
+   "sha256": "0257e5c7231f3653cc1d822dafbf7f523cce3985b286a2b796ae4683a3b025e3"
+  },
+  {
+   "path": "src/main/java/net/mooctest/expression/engine/Expression.java",
+   "bytes": 7584,
+   "sha256": "561ae4309da35ddfc45aa71d74a462b5807d270e852ea28117c1c783335f1744"
+  },
+  {
+   "path": "src/main/java/net/mooctest/expression/engine/ExpressionFunction.java",
+   "bytes": 10857,
+   "sha256": "649c8c9b734937d0210e4172facf6ae87a1906fbbae50b006296fcc53ff65359"
+  },
+  {
+   "path": "src/main/java/net/mooctest/expression/engine/ExtractException.java",
+   "bytes": 518,
+   "sha256": "2f49ae1b7e5d5726f260603ed5cd078e6d18c9389f58a532f986de11fa00d6f7"
+  },
+  {
+   "path": "src/main/java/net/mooctest/expression/engine/FastMultiplyOfIntervalsBrackets.java",
+   "bytes": 4556,
+   "sha256": "9362fb2bc41238f2e7781643c694bc75bc8784179bdad5f3dd98631efd5e4523"
+  },
+  {
+   "path": "src/main/java/net/mooctest/expression/engine/FastSumOfIntervalsBrackets.java",
+   "bytes": 12723,
+   "sha256": "099b3012b5d6851624e438dacfd3b8a37c815bacd98e422e6aa795fa85e592e6"
+  },
+  {
+   "path": "src/main/java/net/mooctest/expression/engine/Function.java",
+   "bytes": 803,
+   "sha256": "c0ad23a6e23aeeb1e0afad88de98e5e4c7d298a30a758533fc6248330f747689"
+  },
+  {
+   "path": "src/main/java/net/mooctest/expression/engine/FunctionExpression.java",
+   "bytes": 12557,
+   "sha256": "d29519482dd485c569970ac4a4c53d86dc9ded2e60263cd3a4cf0b5e1fc54a31"
+  },
+  {
+   "path": "src/main/java/net/mooctest/expression/engine/FunctionFormulaCalculation.java",
+   "bytes": 10923,
+   "sha256": "8856a4cfed80b0480d2e8f2f6b82bd2a1afa54afa4ba81d4fad78c55820a4a19"
+  },
+  {
+   "path": "src/main/java/net/mooctest/expression/engine/FunctionFormulaCalculation2.java",
+   "bytes": 18355,
+   "sha256": "bd08befa6e995b3ab54b1b90efe13fb66639c4876d144b2121928b739968d70b"
+  },
+  {
+   "path": "src/main/java/net/mooctest/expression/engine/FunctionPackage.java",
+   "bytes": 14263,
+   "sha256": "799540cd4bd428e9be00eb031f06a87e923bf61acd60523b2b61f9668cda6ad6"
+  },
+  {
+   "path": "src/main/java/net/mooctest/expression/engine/Functions.java",
+   "bytes": 1011,
+   "sha256": "744a62d801e64260d1bac6b67af32886e2e018e97c686c25ce87d47c18b4c014"
+  },
+  {
+   "path": "src/main/java/net/mooctest/expression/engine/InMemoryJavaFileObject.java",
+   "bytes": 716,
+   "sha256": "a0b16e116ae2f3336f8274dc89cadf16c0a182f599d640c95a094b6631edd583"
+  },
+  {
+   "path": "src/main/java/net/mooctest/expression/engine/JvmCalculation.java",
+   "bytes": 5885,
+   "sha256": "189094d9259e7015b2dbcf32185294b41a7030ab95ab10ac4f7076244745ff37"
+  },
+  {
+   "path": "src/main/java/net/mooctest/expression/engine/JvmExpression.java",
+   "bytes": 7063,
+   "sha256": "828b8a19234384b3340f49615e9ecd510c396b0d6ab6a65e38ec42f135d048de"
+  },
+  {
+   "path": "src/main/java/net/mooctest/expression/engine/JvmExpressionFunction.java",
+   "bytes": 9980,
+   "sha256": "2a467d86d4d03ff7835d9b37857f35484197105a34181980ac8997b881dbc181"
+  },
+  {
+   "path": "src/main/java/net/mooctest/expression/engine/LogResults.java",
+   "bytes": 2261,
+   "sha256": "5c7af51b682e27f066fc9f85dc4591f02e1aa3b491604ce6f18e021c5bf1796e"
+  },
+  {
+   "path": "src/main/java/net/mooctest/expression/engine/ManyToOneNumberFunction.java",
+   "bytes": 2450,
+   "sha256": "c5f68b54f3ab0fa20e5ad48332e52fe7fd4c4ad5d722a353fae9f916d330c031"
+  },
+  {
+   "path": "src/main/java/net/mooctest/expression/engine/Mathematical_Expression.java",
+   "bytes": 23658,
+   "sha256": "532b0a5980872babc23409f67e8b2cacb4b8e040649ce5b5d1823eba09b698a8"
+  },
+  {
+   "path": "src/main/java/net/mooctest/expression/engine/NameExpression.java",
+   "bytes": 2157,
+   "sha256": "a39fa74711a25e32e1158aa3f4a814d518f910e8c2cde0ab01b93e8fe8fa04d9"
+  },
+  {
+   "path": "src/main/java/net/mooctest/expression/engine/NumberCalculation.java",
+   "bytes": 7044,
+   "sha256": "3c7ea884e45fded7d753c0f2b2b59c698e675219efb44c6a6a0e3e4cb21a23c1"
+  },
+  {
+   "path": "src/main/java/net/mooctest/expression/engine/NumberUtils.java",
+   "bytes": 8432,
+   "sha256": "9c4332605e7d72f9631feda44c7260f4cd39bb9b49f84bd5f118b6d9ba7bd515"
+  },
+  {
+   "path": "src/main/java/net/mooctest/expression/engine/PackExpression.java",
+   "bytes": 2402,
+   "sha256": "2e4e085123a360f245833bf8db45097b056f3e692b40b1e5a570f42c11e27a61"
+  },
+  {
+   "path": "src/main/java/net/mooctest/expression/engine/ParsedSignature.java",
+   "bytes": 778,
+   "sha256": "a2c19cc7eb10be966dbdef6ca7b3cf7f42c85c40431b2a1df9d41071f51c3d20"
+  },
+  {
+   "path": "src/main/java/net/mooctest/expression/engine/PrefixExpression.java",
+   "bytes": 20128,
+   "sha256": "cf3a0abc4da3f3be211f4a2ead56e920d2eca9974c55120b32510dee9aa74d28"
+  },
+  {
+   "path": "src/main/java/net/mooctest/expression/engine/PrefixExpressionOperation.java",
+   "bytes": 13106,
+   "sha256": "c3c270e1c6af70246fb0d0008cff754e1fdbefb6cb7f435ae5cafcc0d999cc5d"
+  },
+  {
+   "path": "src/main/java/net/mooctest/expression/engine/SharedCalculation.java",
+   "bytes": 1327,
+   "sha256": "c14823fae09334ea42fd9c1507726b615a88f365c0018a105785af06b801a4d7"
+  },
+  {
+   "path": "src/main/java/net/mooctest/expression/engine/SingletonEquationSolving.java",
+   "bytes": 5534,
+   "sha256": "f2a7c745080a607cb5540657defc843feff1d45e384d9ec248fd05fb70aa7808"
+  },
+  {
+   "path": "src/main/java/net/mooctest/expression/engine/SingletonEquationSolvingTwo.java",
+   "bytes": 5575,
+   "sha256": "e9f6fc52a14f793e31312149ee68cb83ca280765d9dc13d4503323be3c0817a1"
+  },
+  {
+   "path": "src/main/java/net/mooctest/expression/engine/StrUtils.java",
+   "bytes": 10414,
+   "sha256": "83d13cd472d9ffb8e7a9dbf2bfa766174e80c5efc9039d81576a9e1eb09c1b93"
+  },
+  {
+   "path": "src/main/java/net/mooctest/expression/engine/SubCompileExpression.java",
+   "bytes": 3901,
+   "sha256": "8c4b2f66cef8f7c63084e58f32dcb381a86e764b4d15bea25c954b8fbfaca276"
+  },
+  {
+   "path": "src/main/java/net/mooctest/expression/engine/WrongFormat.java",
+   "bytes": 2684,
+   "sha256": "9c9f1445ac7313939ee930e1155b289b7640b92d2cd66a993484c3445da314a4"
+  },
+  {
+   "path": "src/main/java/net/mooctest/grading/domain/AnswerResult.java",
+   "bytes": 680,
+   "sha256": "682f31f60cab512e6cefe483ed7556f82845afabfb25ebcc60fa17facd9c8ed5"
+  },
+  {
+   "path": "src/main/java/net/mooctest/grading/domain/ExamSubmission.java",
+   "bytes": 1017,
+   "sha256": "635df912569031ebe2e1682bc5db20b18122b8e80633cc027932cebd93a9cec1"
+  },
+  {
+   "path": "src/main/java/net/mooctest/grading/domain/GradeReport.java",
+   "bytes": 736,
+   "sha256": "bb17481c7bfa0470dcd9d4fd85604b65c21bae1960ad4e23d7eb448b8f8ae733"
+  },
+  {
+   "path": "src/main/java/net/mooctest/grading/domain/GradingPolicy.java",
+   "bytes": 659,
+   "sha256": "60b8315098bc78a6485b7435e72dd08d13c10ae00e82a6214a2b75561a63a80f"
+  },
+  {
+   "path": "src/main/java/net/mooctest/grading/domain/QuestionType.java",
+   "bytes": 179,
+   "sha256": "eefd088eceb3f7339cc74e8a1c769b321ba567a5265fc712872dc55d34fdc712"
+  },
+  {
+   "path": "src/main/java/net/mooctest/grading/expression/ExpressionAnswerEvaluation.java",
+   "bytes": 585,
+   "sha256": "ee6017ba5866a978c4f9f61bc805ba6ce03c1539335e81a965174cbe6c8c6982"
+  },
+  {
+   "path": "src/main/java/net/mooctest/grading/expression/ExpressionAnswerGradingService.java",
+   "bytes": 3555,
+   "sha256": "ea0c6c23afb53c07cff74b8955133d342be5c151de72c8f41201b207e5948857"
+  },
+  {
+   "path": "src/main/java/net/mooctest/grading/expression/ExpressionAnswerStatus.java",
+   "bytes": 168,
+   "sha256": "f207e85d58aa0aefa11689ef11b894857114f4cffe276d6a226a548e2e905921"
+  },
+  {
+   "path": "src/main/java/net/mooctest/grading/expression/ExpressionAnswerSubmission.java",
+   "bytes": 306,
+   "sha256": "e81e57a9dd571e7d3ddb45f605f001b2973956686868f5ab6f48d90cdfd4c16b"
+  },
+  {
+   "path": "src/main/java/net/mooctest/grading/expression/ExpressionEvaluationException.java",
+   "bytes": 318,
+   "sha256": "d5a59a2257c8dfde652906d4ed8f38df4190197ca67575e89b9536959762c7f3"
+  },
+  {
+   "path": "src/main/java/net/mooctest/grading/expression/ExpressionEvaluator.java",
+   "bytes": 179,
+   "sha256": "3c3b6ca1863a492d4c9649abda4c27d54ab305baa98e272afa85b2015ec0349f"
+  },
+  {
+   "path": "src/main/java/net/mooctest/grading/expression/ExpressionExamGrade.java",
+   "bytes": 507,
+   "sha256": "d6da9157dc88116ae9868f914871b3d1810510004e434ac9c8e869b9f547aa0e"
+  },
+  {
+   "path": "src/main/java/net/mooctest/grading/expression/ExpressionExamGradingService.java",
+   "bytes": 1909,
+   "sha256": "4895a3902906425b0cea1ddb2100d4efb86015c9bffcc5e8b0b4028332f69382"
+  },
+  {
+   "path": "src/main/java/net/mooctest/grading/expression/ExpressionExamSubmission.java",
+   "bytes": 1884,
+   "sha256": "36f97ba848d4100055c6f610a45807492725d375820e9b8021a22a244fa05894"
+  },
+  {
+   "path": "src/main/java/net/mooctest/grading/expression/ExpressionQuestion.java",
+   "bytes": 1223,
+   "sha256": "34f03cf96ce47a3acc0eeb558fd84f79901ecb7053f6e974644975e913389ab6"
+  },
+  {
+   "path": "src/main/java/net/mooctest/grading/expression/MathematicalExpressionEvaluator.java",
+   "bytes": 1676,
+   "sha256": "e04ac67776f8aca9ff94d475af040c384586d9b184e1c5485a96bc7846e53785"
+  },
+  {
+   "path": "src/main/java/net/mooctest/grading/service/ExamGradingService.java",
+   "bytes": 25657,
+   "sha256": "d36f73c63c63de57eaa4edf2a2df8d425c441170766a0485b42f2a628f40a7cf"
+  },
+  {
+   "path": "src/main/java/net/mooctest/pricing/domain/Coupon.java",
+   "bytes": 602,
+   "sha256": "36be71005f3251fb03b3a2c2b428f7f007a2539232b9726c252c634b5f0bc143"
+  },
+  {
+   "path": "src/main/java/net/mooctest/pricing/domain/CouponType.java",
+   "bytes": 122,
+   "sha256": "5aa7d4826fab20ed4fac6032e8f4bf38b77230ef68adf86624536c636c97b051"
+  },
+  {
+   "path": "src/main/java/net/mooctest/pricing/domain/MembershipLevel.java",
+   "bytes": 145,
+   "sha256": "508ec17be048ab94642c6405aaeebf47f2978d234854a11d5f925cb63edef0df"
+  },
+  {
+   "path": "src/main/java/net/mooctest/pricing/domain/PriceBreakdown.java",
+   "bytes": 659,
+   "sha256": "77d08d7438eafffaadeb56087a11ff0349a87ed766fe6a824de330429526219d"
+  },
+  {
+   "path": "src/main/java/net/mooctest/pricing/domain/PriceRequest.java",
+   "bytes": 524,
+   "sha256": "257175d18daa90e28df6c707f0cf35a21ef9805bb0920b49c300695461cc1a88"
+  },
+  {
+   "path": "src/main/java/net/mooctest/pricing/domain/Promotion.java",
+   "bytes": 349,
+   "sha256": "5e2447121604dc42b3137725d162dd1ceec03dbf97f06c218166d27a4ddf1c1c"
+  },
+  {
+   "path": "src/main/java/net/mooctest/pricing/domain/PromotionType.java",
+   "bytes": 115,
+   "sha256": "aaf4943170723f06042c026b26a985b0b51e3782e43600e107a043c1ed76aee6"
+  },
+  {
+   "path": "src/main/java/net/mooctest/pricing/service/AdvancedPricingService.java",
+   "bytes": 20310,
+   "sha256": "a9543870444274729be2ff65104518d8c787843b27c97744f69f61e0d0936941"
+  },
+  {
+   "path": "src/main/java/net/mooctest/progress/domain/CourseProgressSnapshot.java",
+   "bytes": 859,
+   "sha256": "53cb3b5092f1606897f7e2d877acd5c270c1259a47af98588faf3504495d454b"
+  },
+  {
+   "path": "src/main/java/net/mooctest/progress/domain/LessonProgress.java",
+   "bytes": 440,
+   "sha256": "e00f5f7967c9df58ab5713a8f51b9d6cf200c4574d343c8fc4690382c4b6c62b"
+  },
+  {
+   "path": "src/main/java/net/mooctest/progress/domain/LessonType.java",
+   "bytes": 146,
+   "sha256": "4d290dc5941661807b4132d09da05674c51bbc0ce9f1a97f72a96b72fdf7660c"
+  },
+  {
+   "path": "src/main/java/net/mooctest/progress/domain/ProgressEvaluation.java",
+   "bytes": 531,
+   "sha256": "347b4d27aa23eb15b579bd4740587d01de7f21f45848572fe0d9cae1df1e65f2"
+  },
+  {
+   "path": "src/main/java/net/mooctest/progress/service/LearningProgressService.java",
+   "bytes": 14550,
+   "sha256": "1cc90c4fd4bcd0e19ea663b77dc3e46a41681d965fdbaaf782ac8ec0bcd47fdd"
+  },
+  {
+   "path": "src/main/java/net/mooctest/refund/domain/PaymentMethod.java",
+   "bytes": 153,
+   "sha256": "ed0cf3bb5aea1271d9a0accb461b7d1ef4f82e1b94706c6d5ef3916f1619e7e8"
+  },
+  {
+   "path": "src/main/java/net/mooctest/refund/domain/PurchaseSnapshot.java",
+   "bytes": 785,
+   "sha256": "a579240a05f64789fb8c81eeec5fdf3cbb3c8097006945092c7b5b6b5fb05e0f"
+  },
+  {
+   "path": "src/main/java/net/mooctest/refund/domain/RefundDecision.java",
+   "bytes": 493,
+   "sha256": "732e5115ed4c56de10fdb18a6918a18ee1d6eb17def1519270febc5b336812fa"
+  },
+  {
+   "path": "src/main/java/net/mooctest/refund/domain/RefundReason.java",
+   "bytes": 212,
+   "sha256": "39ff83b7872a28d0d31f392a8ff4ed3e4b631040710857cb8fe62b5ed02e1715"
+  },
+  {
+   "path": "src/main/java/net/mooctest/refund/domain/RefundRequest.java",
+   "bytes": 503,
+   "sha256": "2cd7f375d9df2bf9792d7323503cce8bc474ae4767e6feb2cf7482aed76af78e"
+  },
+  {
+   "path": "src/main/java/net/mooctest/refund/service/RefundPolicyService.java",
+   "bytes": 17139,
+   "sha256": "592d3c136e80cdbae300c35c7cf42a9ddd5a8099c60bf2f45f4726c67710bb84"
+  },
+  {
+   "path": "src/main/java/net/mooctest/scheduling/domain/CourseKind.java",
+   "bytes": 126,
+   "sha256": "4bd00af54e3f528155e60ea89c568603c563eade1c4638886fe0ba9c179b3f0e"
+  },
+  {
+   "path": "src/main/java/net/mooctest/scheduling/domain/DeliveryMode.java",
+   "bytes": 108,
+   "sha256": "2a51671aa070e980ac2e4bab9d54139f0d437489f4f87e7056119138aff1d7e1"
+  },
+  {
+   "path": "src/main/java/net/mooctest/scheduling/domain/ExistingBooking.java",
+   "bytes": 330,
+   "sha256": "6325bfba83057b86f4518d0e873bd634cbd0a6bffbb17b5e7810e51339ae969e"
+  },
+  {
+   "path": "src/main/java/net/mooctest/scheduling/domain/ScheduleRequest.java",
+   "bytes": 1859,
+   "sha256": "cf0174abcbcc613f99d836a8d1c98042eb5257a6a57dbb03a1c93317df13142a"
+  },
+  {
+   "path": "src/main/java/net/mooctest/scheduling/domain/SchedulingDecision.java",
+   "bytes": 462,
+   "sha256": "97a7530eecb3cbf485e11b611b31e71baf3338596d1ef83a9cb20e53e1abef5d"
+  },
+  {
+   "path": "src/main/java/net/mooctest/scheduling/domain/TimeWindow.java",
+   "bytes": 125,
+   "sha256": "d2408677b890a8c0f1573505a2c1dfa5c32f4c38532c0d2c09b28f054e7dfaf0"
+  },
+  {
+   "path": "src/main/java/net/mooctest/scheduling/service/SchedulingService.java",
+   "bytes": 21409,
+   "sha256": "5c043e19cc898e11e485d8078e98105ff1a9436cbc9d706042a19dbf475fd286"
+  },
+  {
+   "path": "src/main/resources/application.yml",
+   "bytes": 100,
+   "sha256": "7b64526c20b8e0a366118f29780a596ceb778828306d34a643cb4e52288f4cd4"
+  },
+  {
+   "path": "src/test/java/net/mooctest/StudentTest.java",
+   "bytes": 4541,
+   "sha256": "1fb1606561c76caba78dc1721cbd63c59dedb4b8601c9c63cf937f196a9ca309"
+  }
+ ]
+}

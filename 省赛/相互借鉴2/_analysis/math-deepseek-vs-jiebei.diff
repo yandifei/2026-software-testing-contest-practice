@@ -1,0 +1,331 @@
+diff --git "a/deepseek\\math-assessment\\src\\test\\java\\net\\mooctest\\StudentTest.java" "b/相互借鉴\\math-assessment\\src\\test\\java\\net\\mooctest\\StudentTest.java"
+index 357da56..83d699e 100644
+--- "a/deepseek\\math-assessment\\src\\test\\java\\net\\mooctest\\StudentTest.java"
++++ "b/相互借鉴\\math-assessment\\src\\test\\java\\net\\mooctest\\StudentTest.java"
+@@ -10,4 +10,7 @@
+  * 人为提高覆盖率或变异杀死率。本文件只使用真实输入、反射直调私有入口等规则允许的白盒手段，
+  * 不替换被测类字节码、不探测 PIT mutant 身份。
++ *
++ * 融合说明：以 deepseek 版的业务+引擎套件为骨架，吸收 GLM 的退款时间窗、排课周末/混合教室
++ * 边界用例，形成 RefundWindowAndComplexPrecisionTests；每个用例带 @DisplayName 语义说明。
+  */
+ package net.mooctest;
+@@ -187,7 +190,5 @@ import java.util.Stack;
+ 
+ import static org.junit.jupiter.api.Assertions.assertArrayEquals;
+-import org.junit.jupiter.api.Test;
+-
+-import java.time.Duration;
++import static org.junit.jupiter.api.Assertions.assertSame;
+ 
+ /**
+@@ -13059,220 +13060,102 @@ class StudentTest {
+     }
+ 
+-    // ===== merged from MathProbeTests probe =====
+-    @org.junit.jupiter.api.Nested
+-    class MathProbeTests {
+-
+-
+-    private static final Instant MP_NOW = Instant.parse("2026-06-01T00:00:00Z");
+-
+-    private static Clock mpClock() {
+-        return Clock.fixed(MP_NOW, ZoneOffset.UTC);
+-    }
+-
+-    private static PurchaseSnapshot mpPurchase(
+-            BigDecimal paidAmount,
+-            long paidHoursAgo,
+-            int progressPercent,
+-            PaymentMethod method,
+-            int attended,
+-            int total
+-    ) {
+-        return new PurchaseSnapshot(
+-                "P-1", "S-1", "C-1",
+-                paidAmount,
+-                new BigDecimal("0.00"),
+-                new BigDecimal("0.00"),
+-                MP_NOW.minus(Duration.ofHours(paidHoursAgo)),
+-                method,
+-                progressPercent,
+-                0,
+-                false,
+-                attended,
+-                total,
+-                false,
+-                false,
+-                0,
+-                false,
+-                false,
+-                false,
+-                false,
+-                null
+-        );
+-    }
+-
+-    private static RefundRequest mpRefund(PurchaseSnapshot purchase) {
+-        return new RefundRequest(
+-                purchase,
+-                RefundReason.OTHER,
+-                false,
+-                0,
+-                true,
+-                false,
+-                false,
+-                false,
+-                false,
+-                false,
+-                false,
+-                false
+-        );
+-    }
+-
+-    @Test
+-    void refundSevenDayPartialWindowRightEdge() {
+-        // 168h 整：应命中 7 天部分退款窗口（0.70），而不是滑落到 14 天窗口（0.50）
+-        PurchaseSnapshot purchase = mpPurchase(
+-                new BigDecimal("100.00"), 168L, 20, PaymentMethod.CARD, 0, 0);
+-        RefundDecision decision = new RefundPolicyService(mpClock()).evaluate(mpRefund(purchase));
+-        assertTrue(decision.approved());
+-        assertTrue(decision.reasons().contains("SEVEN_DAY_PARTIAL_REFUND"));
+-        assertEquals(new BigDecimal("70.00"), decision.refundableAmount().add(decision.processingFee()));
+-        assertEquals(new BigDecimal("67.90"), decision.refundableAmount());
+-        assertEquals(new BigDecimal("2.10"), decision.processingFee());
+-    }
+-
+-    @Test
+-    void refundFourteenDayPartialWindowRightEdge() {
+-        // 336h 整：应命中 14 天部分退款窗口（0.50）
+-        PurchaseSnapshot purchase = mpPurchase(
+-                new BigDecimal("100.00"), 336L, 20, PaymentMethod.CARD, 0, 0);
+-        RefundDecision decision = new RefundPolicyService(mpClock()).evaluate(mpRefund(purchase));
+-        assertTrue(decision.approved());
+-        assertTrue(decision.reasons().contains("FOURTEEN_DAY_PARTIAL_REFUND"));
+-        assertEquals(new BigDecimal("48.50"), decision.refundableAmount());
+-        assertEquals(new BigDecimal("1.50"), decision.processingFee());
+-    }
+-
+-    @Test
+-    void refundThirtyDayExceptionWindowRightEdge() {
+-        // 720h 整：应命中 30 天例外窗口（0.25）
+-        PurchaseSnapshot purchase = mpPurchase(
+-                new BigDecimal("100.00"), 720L, 12, PaymentMethod.CARD, 0, 0);
+-        RefundDecision decision = new RefundPolicyService(mpClock()).evaluate(mpRefund(purchase));
+-        assertTrue(decision.approved());
+-        assertTrue(decision.reasons().contains("THIRTY_DAY_EXCEPTION"));
+-        assertEquals(new BigDecimal("24.25"), decision.refundableAmount());
+-        assertEquals(new BigDecimal("0.75"), decision.processingFee());
+-    }
+-
+-    @Test
+-    void refundSevenDayPartialProgressEdge() {
+-        // 7 天部分退款窗口的进度上边界：progress==30 仍应给 0.70
+-        PurchaseSnapshot purchase = mpPurchase(
+-                new BigDecimal("100.00"), 168L, 30, PaymentMethod.CARD, 0, 0);
+-        RefundDecision decision = new RefundPolicyService(mpClock()).evaluate(mpRefund(purchase));
+-        assertTrue(decision.approved());
+-        assertTrue(decision.reasons().contains("SEVEN_DAY_PARTIAL_REFUND"));
+-        assertEquals(new BigDecimal("67.90"), decision.refundableAmount());
+-    }
+-
+-    @Test
+-    void refundFourteenDayProgressEdge() {
+-        // 14 天部分退款窗口的进度上边界：progress==30 仍应给 0.50
+-        PurchaseSnapshot purchase = mpPurchase(
+-                new BigDecimal("100.00"), 200L, 30, PaymentMethod.CARD, 0, 0);
+-        RefundDecision decision = new RefundPolicyService(mpClock()).evaluate(mpRefund(purchase));
+-        assertTrue(decision.approved());
+-        assertTrue(decision.reasons().contains("FOURTEEN_DAY_PARTIAL_REFUND"));
+-        assertEquals(new BigDecimal("48.50"), decision.refundableAmount());
+-    }
+-
+-    @Test
+-    void refundThirtyDayProgressEdge() {
+-        // 30 天例外窗口的进度上边界：progress==15 仍应给 0.25
+-        PurchaseSnapshot purchase = mpPurchase(
+-                new BigDecimal("100.00"), 720L, 15, PaymentMethod.CARD, 0, 0);
+-        RefundDecision decision = new RefundPolicyService(mpClock()).evaluate(mpRefund(purchase));
+-        assertTrue(decision.approved());
+-        assertTrue(decision.reasons().contains("THIRTY_DAY_EXCEPTION"));
+-        assertEquals(new BigDecimal("24.25"), decision.refundableAmount());
+-    }
+-
+-    @Test
+-    void refundFeeEqualsZeroGrossAddsNoCapWarning() {
+-        // 0 元支付单：手续费（0.00）与毛退款（0.00）相等，不得因此触发“手续费封顶”告警
+-        PurchaseSnapshot purchase = mpPurchase(
+-                new BigDecimal("0.00"), 1L, 0, PaymentMethod.CARD, 0, 0);
+-        RefundDecision decision = new RefundPolicyService(mpClock()).evaluate(mpRefund(purchase));
+-        assertFalse(decision.warnings().contains("PROCESSING_FEE_LIMITED_TO_REFUND_AMOUNT"));
+-    }
++    // ==================================================================
++    // 退款时间窗“等值点”与复数表达式精度标志（补充边界回归）
++    //
++    // 目标：覆盖 RefundPolicyService 三个时间窗判断在“恰好等于阈值”
++    // 时的行为，以及 ComplexExpression 在 double 模式下的精度标志。
++    // 全部使用公开 API 与固定时钟 CLOCK，结果可重复。
++    // ==================================================================
++    @Nested
++    @DisplayName("退款时间窗等值点与复数表达式精度标志")
++    class RefundWindowAndComplexPrecisionTests {
++
++        /**
++         * 构造一笔退款申请并返回评估结果。
++         *
++         * @param hoursSincePurchase 从支付到当前时刻的小时数，用于命中不同时间窗
++         * @param progressPercent    课程学习进度百分比
++         * @return 退款策略服务给出的决策
++         */
++        private RefundDecision evaluateRefund(long hoursSincePurchase, int progressPercent) {
++            // 构造购买快照：支付时间由固定时钟 CLOCK 反推，保证结果确定。
++            Pur purchase = new Pur();
++            purchase.paidAt = T0.minusSeconds(hoursSincePurchase * 3600L);
++            purchase.progress = progressPercent;
+ 
+-    @Test
+-    void refundProcessingFeeIgnoresZeroTotalSessions() throws Exception {
+-        // 畸形快照（attended=5 > total=0）：真实逻辑因 totalLiveSessions()>0 不成立而跳过出勤费率，
+-        // 不得进入 5/0 的除法分支。
+-        PurchaseSnapshot purchase = mpPurchase(
+-                new BigDecimal("100.00"), 48L, 0, PaymentMethod.CARD, 5, 0);
+-        RefundRequest request = mpRefund(purchase);
+-        Method m = RefundPolicyService.class.getDeclaredMethod(
+-                "calculateProcessingFee",
+-                RefundRequest.class,
+-                BigDecimal.class,
+-                long.class,
+-                List.class);
+-        m.setAccessible(true);
+-        List<String> warnings = new ArrayList<>();
+-        Object fee = m.invoke(new RefundPolicyService(mpClock()),
+-                request, new BigDecimal("100.00"), 48L, warnings);
+-        assertEquals(new BigDecimal("3.00"), fee);
+-    }
++            // 构造退款请求：默认“全额退款”与“意外购买”原因，便于命中比例条款。
++            Ref request = new Ref();
++            request.purchase = purchase.build();
+ 
+-    @Test
+-    void numberSumOfRangeSameExtremeDouble() {
+-        assertEquals(Double.MAX_VALUE,
+-                NumberUtils.sumOfRange(Double.MAX_VALUE, Double.MAX_VALUE),
+-                0.0d);
+-    }
++            // 调用被测服务；Clock 固定后，小时差恰好等于传入值。
++            return new RefundPolicyService(CLOCK).evaluate(request.build());
++        }
+ 
+-    @Test
+-    void numberSumOfRangeWithNaNStepSameEndpoints() {
+-        // start == end 时无论步长如何都应直接返回端点值
+-        assertEquals(5.0d, NumberUtils.sumOfRange(5.0d, 5.0d, Double.NaN), 0.0d);
+-    }
++        @Test
++        @DisplayName("七天部分退款：恰好 168 小时仍按 70% 比例")
++        void sevenDayWindowIncludesBoundaryHour() {
++            // 168 小时是 `hoursSincePurchase <= 7 * 24` 的等值点；若边界被收窄为 `<`，
++            // 就会错误落入十四天条款，退款比例随之不同。
++            RefundDecision decision = evaluateRefund(7 * 24, 20);
+ 
+-    @Test
+-    void numberMultiplyOfRangeWithNaNStepSameEndpoints() {
+-        assertEquals(5.0d, NumberUtils.MultiplyOfRange(5.0d, 5.0d, Double.NaN), 0.0d);
+-    }
++            // 断言命中七天部分退款条款，并给出 70% 的退款金额。
++            assertTrue(decision.reasons().contains("SEVEN_DAY_PARTIAL_REFUND"),
++                    decision.reasons()::toString);
++            assertEquals(bd("67.90"), decision.refundableAmount());
++        }
+ 
+-    private static ScheduleRequest mpHybridRequest(String roomId) {
+-        Clock clock = Clock.fixed(Instant.parse("2026-11-15T08:00:00Z"), ZoneOffset.UTC);
+-        return new ScheduleRequest(
+-                "C-1", "CO-1", "I-1",
+-                DeliveryMode.HYBRID,
+-                CourseKind.LECTURE,
+-                Instant.parse("2026-12-01T02:00:00Z"),
+-                Instant.parse("2026-12-01T03:30:00Z"),
+-                "Asia/Shanghai",
+-                roomId,
+-                "https://meeting.example.com/x",
+-                10, 10, 20,
+-                Set.of(), Set.of(),
+-                false, false,
+-                true, false, true,
+-                false, 1, 30, 4,
+-                List.of(), List.of(), List.of(), Set.of(),
+-                false, false, true
+-        );
+-    }
++        @Test
++        @DisplayName("十四天部分退款：恰好 336 小时仍按 50% 比例")
++        void fourteenDayWindowIncludesBoundaryHour() {
++            // 336 小时是 `hoursSincePurchase <= 14 * 24` 的等值点。
++            RefundDecision decision = evaluateRefund(14 * 24, 20);
+ 
+-    @Test
+-    void schedulingHybridWithoutRoomReportsConflictInsteadOfNullPointer() {
+-        Clock clock = Clock.fixed(Instant.parse("2026-11-15T08:00:00Z"), ZoneOffset.UTC);
+-        SchedulingDecision decision = new SchedulingService(clock).evaluate(mpHybridRequest(null));
+-        assertNotNull(decision);
+-        assertTrue(decision.conflicts().contains("HYBRID_ROOM_REQUIRED"),
+-                "conflicts=" + decision.conflicts());
+-    }
++            // 断言命中十四天部分退款条款。
++            assertTrue(decision.reasons().contains("FOURTEEN_DAY_PARTIAL_REFUND"),
++                    decision.reasons()::toString);
++        }
+ 
+-    @Test
+-    void schedulingHybridWithBlankRoomReportsConflict() {
+-        Clock clock = Clock.fixed(Instant.parse("2026-11-15T08:00:00Z"), ZoneOffset.UTC);
+-        SchedulingDecision decision = new SchedulingService(clock).evaluate(mpHybridRequest("   "));
+-        assertNotNull(decision);
+-        assertTrue(decision.conflicts().contains("HYBRID_ROOM_REQUIRED"),
+-                "conflicts=" + decision.conflicts());
+-    }
++        @Test
++        @DisplayName("三十天例外：恰好 720 小时仍按 25% 比例")
++        void thirtyDayWindowIncludesBoundaryHour() {
++            // 720 小时是 `hoursSincePurchase <= 30 * 24` 的等值点。
++            RefundDecision decision = evaluateRefund(30 * 24, 10);
+ 
++            // 断言命中三十天例外条款。
++            assertTrue(decision.reasons().contains("THIRTY_DAY_EXCEPTION"),
++                    decision.reasons()::toString);
++        }
++
++        @Test
++        @DisplayName("混合授课教室编号为 null 时仍报告 HYBRID_ROOM_REQUIRED")
++        void hybridSessionWithNullRoomReportsConflict() {
++            // 构造混合授课请求：教室编号显式置空，会议链接合法。
++            Sch request = new Sch();
++            request.delivery = DeliveryMode.HYBRID;
++            request.roomCapacity = 50;
++            request.roomId = null;
++            request.meetingUrl = "https://meet.example/hybrid";
++
++            // 调用被测服务并断言冲突原因。
++            SchedulingDecision decision = new SchedulingService(CLOCK).evaluate(request.build());
++            assertTrue(decision.conflicts().contains("HYBRID_ROOM_REQUIRED"),
++                    decision.conflicts()::toString);
++        }
+ 
++        @Test
++        @DisplayName("周日的重复课程给出周末提醒")
++        void recurringSundaySessionWarnsAboutWeekend() {
++            // 2026-11-22 是周日（亚洲/上海时区当地时间为上午 10 点）。
++            Sch request = new Sch();
++            request.recurring = true;
++            request.occurrences = 3;
++            request.weekendAllowed = true;
++            request.start("2026-11-22T02:00:00Z", 60);
++
++            // 断言周末重复课程提醒出现，覆盖“周日”这一操作数。
++            SchedulingDecision decision = new SchedulingService(CLOCK).evaluate(request.build());
++            assertTrue(decision.warnings().contains("RECURRING_WEEKEND_SESSION"),
++                    decision.warnings()::toString);
++        }
+     }
+ }

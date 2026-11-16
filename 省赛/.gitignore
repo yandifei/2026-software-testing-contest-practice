@@ -1,0 +1,26 @@
+# 构建产物（Maven / Gradle）
+target/
+build/
+out/
+
+# 编译缓存
+*.class
+*.jar
+*.exec
+__pycache__/
+
+# 日志与中间文件
+*.log
+*.bak
+*.tmp
+*.dumpstream
+*.lst
+
+# IDE / 编辑器
+.idea/
+*.iml
+.vscode/
+
+# 系统文件
+Thumbs.db
+.DS_Store

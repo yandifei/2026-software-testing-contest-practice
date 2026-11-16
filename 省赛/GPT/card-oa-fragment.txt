@@ -1,0 +1,273 @@
+// IMPORTS
+import net.mooctest.attendance.*;
+import net.mooctest.leave.*;
+import net.mooctest.domain.*;
+import net.mooctest.service.*;
+import net.mooctest.port.*;
+import net.mooctest.exception.*;
+import net.mooctest.util.DateTextParser;
+import java.time.LocalTime;
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.Optional;
+// MEMBERS
+    private static final LocalDate OA_DAY = LocalDate.of(2026, 2, 2);
+    private static Shift oaShift(ShiftType type) {
+        return new Shift(type, LocalTime.of(9,0), LocalTime.of(18,0), 5,60, type==ShiftType.PART_TIME?360:480);
+    }
+    private static PunchRecord oaPunch(int arrival, int departure, int pause, boolean remote, boolean verified, boolean manual, boolean corrected) {
+        return new PunchRecord(OA_DAY.atTime(9,0).plusMinutes(arrival), OA_DAY.atTime(18,0).plusMinutes(departure),pause,remote,verified,manual,corrected);
+    }
+    private static AttendanceInput oaInput(ShiftType shift, PunchRecord punch, EmploymentMode mode, boolean scheduled, boolean holiday, boolean leave, boolean trip, boolean weather, boolean requested, boolean approved, int late, int consecutive) {
+        return new AttendanceInput(" E ",OA_DAY,oaShift(shift),punch,mode,scheduled,holiday,leave,trip,weather,requested,approved,late,consecutive);
+    }
+    private static AttendanceInput oaNormal(PunchRecord punch) {
+        return oaInput(ShiftType.STANDARD,punch,EmploymentMode.OFFICE,true,false,false,false,false,true,true,0,0);
+    }
+    private static void oaMetric(AttendanceResult r, int worked,int late,int early,int overtime,int paid,int penalty,boolean review) {
+        assertEquals(worked,r.workedMinutes()); assertEquals(late,r.lateMinutes()); assertEquals(early,r.earlyLeaveMinutes());
+        assertEquals(overtime,r.overtimeMinutes()); assertEquals(paid,r.payableOvertimeMinutes()); assertEquals(penalty,r.penaltyPoints()); assertEquals(review,r.requiresManagerReview());
+    }
+    @Test void oaAttendanceEarlyReturns() {
+        AttendancePolicy p=new AttendancePolicy(); PunchRecord punch=oaPunch(0,0,60,false,true,false,false);
+        AttendanceResult r=p.evaluate(oaInput(ShiftType.STANDARD,null,EmploymentMode.OFFICE,true,false,true,false,false,false,false,0,0));
+        assertEquals(List.of(AttendanceCode.APPROVED_LEAVE),r.codes());oaMetric(r,0,0,0,0,0,0,false);assertTrue(r.warnings().isEmpty());
+        r=p.evaluate(oaInput(ShiftType.STANDARD,punch,EmploymentMode.OFFICE,true,false,true,false,false,false,false,0,0)); assertEquals(List.of("punch exists on an approved leave day"),r.warnings());
+        r=p.evaluate(oaInput(ShiftType.STANDARD,null,EmploymentMode.OFFICE,true,false,false,true,false,false,false,0,0)); assertEquals(List.of(AttendanceCode.BUSINESS_TRIP),r.codes());oaMetric(r,480,0,0,0,0,0,false);
+        r=p.evaluate(oaInput(ShiftType.STANDARD,punch,EmploymentMode.OFFICE,true,false,false,true,false,false,false,0,0));assertEquals(List.of(AttendanceCode.BUSINESS_TRIP),r.codes());oaMetric(r,480,0,0,0,0,0,false);
+        r=p.evaluate(oaInput(ShiftType.STANDARD,null,EmploymentMode.OFFICE,false,false,false,false,false,false,false,0,0)); assertEquals(List.of(AttendanceCode.REST_DAY),r.codes());oaMetric(r,0,0,0,0,0,0,false);
+        r=p.evaluate(oaNormal(null));assertEquals(List.of(AttendanceCode.ABSENT),r.codes());oaMetric(r,0,0,0,0,0,5,true);
+        r=p.evaluate(oaInput(ShiftType.STANDARD,null,EmploymentMode.OFFICE,false,true,false,false,true,false,false,0,0));assertEquals(List.of(AttendanceCode.MANUAL_CORRECTION_REQUIRED),r.codes());oaMetric(r,0,0,0,0,0,0,true);
+        assertThrows(NullPointerException.class,()->p.evaluate(null));assertThrows(NullPointerException.class,()->new AttendancePolicy(null));
+        for(boolean missingIn:new boolean[]{false,true}) for(boolean missingOut:new boolean[]{false,true}) {
+            if(!missingIn&&!missingOut)continue;
+            for(boolean manual:new boolean[]{false,true}) for(boolean corrected:new boolean[]{false,true}) {
+                if(corrected&&!manual)continue;
+                PunchRecord q=new PunchRecord(missingIn?null:OA_DAY.atTime(9,0),missingOut?null:OA_DAY.atTime(18,0),0,false,true,manual,corrected);
+                r=p.evaluate(oaNormal(q));oaMetric(r,0,0,0,0,0,2,true);
+                assertEquals(missingIn,r.codes().contains(AttendanceCode.MISSING_CLOCK_IN));assertEquals(missingOut,r.codes().contains(AttendanceCode.MISSING_CLOCK_OUT));
+                assertEquals(!corrected,r.codes().contains(AttendanceCode.MANUAL_CORRECTION_REQUIRED));assertEquals(corrected,r.warnings().contains("approved correction remains incomplete"));
+            }
+        }
+    }
+    @Test void oaAttendanceThresholdsAndLocations() {
+        AttendancePolicy p=new AttendancePolicy();
+        AttendanceResult r=p.evaluate(oaNormal(oaPunch(0,0,60,false,true,false,false))); assertEquals(List.of(AttendanceCode.NORMAL),r.codes());oaMetric(r,480,0,0,0,0,0,false);
+        int[][] rows={{5,0,475,0,2},{6,0,474,1,3},{20,0,460,15,3},{21,0,459,16,4},{65,0,415,60,4},{66,0,414,61,7},{0,-5,475,0,2},{0,-6,474,0,3},{0,-60,420,0,3},{0,-61,419,0,5},{0,-240,240,0,5},{0,-241,239,0,7}};
+        for(int[] a:rows){r=p.evaluate(oaNormal(oaPunch(a[0],a[1],60,false,true,false,false)));assertEquals(a[2],r.workedMinutes());assertEquals(a[3],r.lateMinutes());assertEquals(a[4],r.penaltyPoints());assertEquals(a[4]>=5,r.requiresManagerReview());assertEquals(a[1]<-5?-a[1]:0,r.earlyLeaveMinutes());}
+        for(int count:new int[]{2,3,5,6}) {r=p.evaluate(oaInput(ShiftType.STANDARD,oaPunch(6,6,60,false,true,false,false),EmploymentMode.OFFICE,true,false,false,false,false,true,true,count,0)); assertEquals(count>=6?6:count>=3?3:1,r.penaltyPoints());assertEquals(count>=3,r.warnings().contains("repeated lateness requires manager review"));assertEquals(count>=6,r.warnings().contains("monthly lateness threshold exceeded"));}
+        r=p.evaluate(oaInput(ShiftType.STANDARD,oaPunch(0,0,60,false,true,false,false),EmploymentMode.OFFICE,true,false,false,false,false,true,true,6,0));assertEquals(3,r.penaltyPoints());
+        for(int arrival:new int[]{65,66}) {r=p.evaluate(oaInput(ShiftType.FLEXIBLE,oaPunch(arrival,arrival,60,false,true,false,false),EmploymentMode.OFFICE,true,false,false,false,false,true,true,0,0));assertEquals(arrival==65?0:1,r.lateMinutes());}
+        for(int arrival:new int[]{125,126}) {r=p.evaluate(oaInput(ShiftType.STANDARD,oaPunch(arrival,arrival,60,false,true,false,false),EmploymentMode.OFFICE,true,false,false,false,true,true,true,0,0)); assertEquals(arrival==125?0:121,r.lateMinutes());assertEquals(arrival==125,r.warnings().contains("late arrival waived because of severe weather"));}
+        for(int worked:new int[]{359,360}) {r=p.evaluate(oaNormal(oaPunch(0,worked-540,0,false,true,false,false)));assertEquals(worked==360,r.codes().contains(AttendanceCode.INSUFFICIENT_BREAK));}
+        r=p.evaluate(oaNormal(oaPunch(0,0,60,false,true,true,false)));assertTrue(r.requiresManagerReview());assertTrue(r.codes().contains(AttendanceCode.MANUAL_CORRECTION_REQUIRED));
+        r=p.evaluate(oaNormal(oaPunch(0,0,60,false,true,true,true)));assertEquals(List.of(AttendanceCode.NORMAL),r.codes());
+        for(EmploymentMode mode:EmploymentMode.values()) for(boolean remote:new boolean[]{false,true}) for(boolean verified:new boolean[]{false,true}) {
+            r=p.evaluate(oaInput(ShiftType.STANDARD,oaPunch(0,0,60,remote,verified,false,false),mode,true,false,false,false,false,true,true,0,0));
+            boolean location=(mode==EmploymentMode.OFFICE&&remote)||(mode==EmploymentMode.FIELD&&!verified)||(remote&&!verified);
+            assertEquals(location,r.codes().contains(AttendanceCode.LOCATION_UNVERIFIED));assertEquals(location,r.requiresManagerReview());
+            assertEquals(mode==EmploymentMode.OFFICE&&remote,r.warnings().contains("office employee used a remote punch"));
+            assertEquals(mode==EmploymentMode.REMOTE&&!remote,r.warnings().contains("remote employee used an office punch"));
+            assertEquals(mode==EmploymentMode.HYBRID&&remote&&!verified,r.warnings().contains("hybrid remote location needs review"));
+        }
+        r=p.evaluate(oaNormal(oaPunch(0,240,60,false,true,false,false)));oaMetric(r,720,0,0,240,240,0,false);assertEquals(List.of(AttendanceCode.OVERTIME),r.codes());
+        r=p.evaluate(oaNormal(oaPunch(0,241,60,false,true,false,false)));assertTrue(r.codes().contains(AttendanceCode.EXCESSIVE_OVERTIME));assertEquals(List.of("ordinary approved overtime"),r.warnings());
+        r=p.evaluate(oaNormal(new PunchRecord(OA_DAY.atTime(9,0),OA_DAY.atTime(9,0),480,false,true,false,false)));assertEquals(0,r.workedMinutes());
+    }
+    @Test void oaOvertimeDecisionTable() {
+        OvertimePolicy p=new OvertimePolicy(); AttendanceInput normal=oaNormal(oaPunch(0,0,60,false,true,false,false));
+        assertEquals(new OvertimeResult(0,0,0,false,false,"no overtime"),p.evaluate(normal,0,0));
+        for(int raw:new int[]{1,29,30,59,60,239,240,241,269,270,360,361}) {
+            OvertimeResult r=p.evaluate(normal,900,raw);int paid=raw<30?0:raw<60?30:raw==60?60:raw==239?210:raw<270?240:240;
+            assertEquals(raw,r.actualMinutes());assertEquals(paid,r.payableMinutes());assertEquals(1.0,r.compensationFactor());assertEquals(raw>=270,r.managerReview());assertFalse(r.compensatoryLeave());assertEquals(raw<30?"overtime below minimum duration":raw>=270?"daily overtime capped at four hours":"ordinary approved overtime",r.reason());
+        }
+        assertTrue(p.evaluate(normal,901,30).managerReview());
+        assertThrows(IllegalArgumentException.class,()->p.evaluate(normal,-1,0));assertThrows(IllegalArgumentException.class,()->p.evaluate(normal,0,-1));assertThrows(NullPointerException.class,()->p.evaluate(null,0,0));
+        for(boolean requested:new boolean[]{false,true}) {
+            OvertimeResult r=p.evaluate(oaInput(ShiftType.STANDARD,null,EmploymentMode.OFFICE,true,false,false,false,false,requested,false,0,0),500,60);assertEquals(60,r.actualMinutes());assertEquals(0,r.payableMinutes());assertEquals(0,r.compensationFactor());assertTrue(r.managerReview());assertEquals(requested?"overtime is awaiting approval":"overtime was not requested",r.reason());
+        }
+        for(int day:new int[]{0,5,6}) {AttendanceInput input=new AttendanceInput("E",OA_DAY.plusDays(day),oaShift(ShiftType.STANDARD),null,EmploymentMode.OFFICE,true,false,false,false,false,true,true,0,0);assertEquals(day==0?1:2,p.evaluate(input,500,60).compensationFactor());}
+        OvertimeResult r=p.evaluate(oaInput(ShiftType.STANDARD,null,EmploymentMode.OFFICE,false,false,false,false,false,true,true,0,5),500,60);assertEquals(2,r.compensationFactor());assertEquals("rest-day overtime",r.reason());assertFalse(r.compensatoryLeave());
+        r=p.evaluate(oaInput(ShiftType.STANDARD,null,EmploymentMode.OFFICE,false,true,false,false,false,true,true,0,6),500,60);assertEquals(3,r.compensationFactor());assertEquals("public-holiday overtime",r.reason());assertTrue(r.compensatoryLeave());assertTrue(r.managerReview());
+        for(int raw:new int[]{60,61}) {r=p.evaluate(oaInput(ShiftType.ON_CALL,null,EmploymentMode.OFFICE,true,false,false,false,false,true,true,0,0),500,raw);assertEquals(raw==60?0:1,r.compensationFactor());assertEquals(raw==60,r.compensatoryLeave());assertEquals(raw==60?"short on-call work grants compensatory leave":"ordinary approved overtime",r.reason());}
+        r=p.evaluate(oaInput(ShiftType.STANDARD,oaPunch(0,0,60,true,false,false,false),EmploymentMode.REMOTE,true,false,false,false,false,true,true,0,0),500,60);assertEquals(0,r.payableMinutes());assertTrue(r.managerReview());assertEquals("remote overtime location is unverified",r.reason());
+        r=p.evaluate(oaInput(ShiftType.STANDARD,null,EmploymentMode.REMOTE,true,false,false,false,false,true,true,0,0),500,60);assertEquals(60,r.payableMinutes());
+    }
+    @Test void oaAttendanceRecordsValidateBoundaries() {
+        Shift s=oaShift(ShiftType.STANDARD);assertFalse(s.crossesMidnight());assertEquals(OA_DAY.atTime(9,0),s.scheduledStart(OA_DAY));assertEquals(OA_DAY.atTime(18,0),s.scheduledEnd(OA_DAY));assertEquals(480,s.scheduledMinutes(OA_DAY));
+        Shift crossing=new Shift(ShiftType.STANDARD,LocalTime.of(22,0),LocalTime.of(6,0),120,180,960);assertTrue(crossing.crossesMidnight());assertEquals(OA_DAY.plusDays(1).atTime(6,0),crossing.scheduledEnd(OA_DAY));assertEquals(300,crossing.scheduledMinutes(OA_DAY));
+        for(int[] v:new int[][]{{-1,0,60},{121,0,60},{0,-1,60},{0,181,60},{0,0,59},{0,0,961}})assertThrows(IllegalArgumentException.class,()->new Shift(ShiftType.STANDARD,LocalTime.NOON,LocalTime.MIDNIGHT,v[0],v[1],v[2]));
+        assertThrows(IllegalArgumentException.class,()->new Shift(ShiftType.PART_TIME,LocalTime.NOON,LocalTime.MIDNIGHT,0,0,361));
+        assertThrows(NullPointerException.class,()->new Shift(ShiftType.NIGHT,LocalTime.of(22,0),LocalTime.of(6,0),0,0,480));
+        assertThrows(IllegalArgumentException.class,()->new Shift(ShiftType.STANDARD,LocalTime.NOON,LocalTime.NOON,0,0,60));
+        for(int b:new int[]{-1,481})assertThrows(IllegalArgumentException.class,()->oaPunch(0,0,b,false,true,false,false));
+        assertThrows(IllegalArgumentException.class,()->oaPunch(0,-541,0,false,true,false,false));assertThrows(IllegalArgumentException.class,()->oaPunch(0,0,0,false,true,false,true));
+        assertEquals(480,oaPunch(0,0,480,false,true,false,false).breakMinutes());
+        for(String id:new String[]{null," "})assertThrows(IllegalArgumentException.class,()->new AttendanceInput(id,OA_DAY,s,null,EmploymentMode.OFFICE,true,false,false,false,false,false,false,0,0));
+        assertEquals("E",oaNormal(null).employeeId());
+        assertThrows(IllegalArgumentException.class,()->oaInput(ShiftType.STANDARD,null,EmploymentMode.OFFICE,true,false,false,false,false,false,true,0,0));
+        assertThrows(IllegalArgumentException.class,()->oaInput(ShiftType.STANDARD,null,EmploymentMode.OFFICE,true,false,true,true,false,false,false,0,0));
+        assertThrows(IllegalArgumentException.class,()->oaInput(ShiftType.STANDARD,null,EmploymentMode.OFFICE,true,false,false,false,false,false,false,-1,0));
+        assertThrows(IllegalArgumentException.class,()->oaInput(ShiftType.STANDARD,null,EmploymentMode.OFFICE,true,false,false,false,false,false,false,0,-1));
+        for(int i=0;i<6;i++){int[] a=new int[6];a[i]=-1;assertThrows(IllegalArgumentException.class,()->new AttendanceResult(List.of(AttendanceCode.NORMAL),a[0],a[1],a[2],a[3],a[4],a[5],false,List.of()));}
+        assertThrows(IllegalArgumentException.class,()->new AttendanceResult(List.of(),0,0,0,0,0,0,false,List.of()));assertThrows(IllegalArgumentException.class,()->new AttendanceResult(List.of(AttendanceCode.NORMAL),0,0,0,0,1,0,false,List.of()));
+        ArrayList<AttendanceCode> codes=new ArrayList<>(List.of(AttendanceCode.NORMAL));ArrayList<String> warnings=new ArrayList<>();AttendanceResult result=new AttendanceResult(codes,0,0,0,0,0,0,false,warnings);codes.clear();warnings.add("x");assertEquals(List.of(AttendanceCode.NORMAL),result.codes());assertTrue(result.warnings().isEmpty());assertThrows(UnsupportedOperationException.class,()->result.codes().clear());
+        for(int[] v:new int[][]{{-1,0},{0,-1},{0,1}})assertThrows(IllegalArgumentException.class,()->new OvertimeResult(v[0],v[1],0,false,false,"x"));
+        assertThrows(IllegalArgumentException.class,()->new OvertimeResult(0,0,-1,false,false,"x"));for(String reason:new String[]{null," "})assertThrows(IllegalArgumentException.class,()->new OvertimeResult(0,0,0,false,false,reason));
+    }
+    private static AdvancedLeaveRequest oaLeave(LeaveType type,EmployeeCategory category,LeaveUnit unit,double hours,LocalDate start,LocalDate end,String reason,boolean emergency,boolean remote,boolean handover,int months,int notice,double balance,double carry) {
+        return new AdvancedLeaveRequest(" E ",category,type,start,end,unit,hours,reason,emergency,remote,handover,months,notice,balance,carry);
+    }
+    private static AdvancedLeaveRequest oaDays(LeaveType type,EmployeeCategory category,int days,boolean emergency,boolean remote,boolean handover,int months,int notice,double balance,double carry) {
+        return oaLeave(type,category,LeaveUnit.FULL_DAY,0,OA_DAY,OA_DAY.plusDays(days-1),"valid reason",emergency,remote,handover,months,notice,balance,carry);
+    }
+    private static LeaveAssessment oaAssess(AdvancedLeaveRequest r) {return new AdvancedLeavePolicy().assess(r,d->true,OA_DAY);}
+    private static void oaViolation(AdvancedLeaveRequest r,String message,boolean expected) {assertEquals(expected,oaAssess(r).violations().contains(message),message+" for "+r);}
+    @Test void oaLeaveChargingAndDecisionThresholds() {
+        AdvancedLeavePolicy p=new AdvancedLeavePolicy();
+        AdvancedLeaveRequest r=oaDays(LeaveType.ANNUAL,EmployeeCategory.REGULAR,1,false,false,true,12,7,50,0);
+        assertEquals("E",r.employeeId());LeaveAssessment a=oaAssess(r);assertTrue(a.eligible());assertEquals(1,a.chargedDays());assertEquals(ApprovalTier.SUPERVISOR,a.approvalTier());assertFalse(a.handoverRequired());assertFalse(a.medicalCertificateRequired());assertTrue(a.violations().isEmpty());
+        assertEquals(5,p.calculateChargedDays(oaDays(LeaveType.SICK,EmployeeCategory.REGULAR,7,false,false,true,12,7,50,0),d->d.getDayOfWeek().getValue()<6));
+        for(LeaveUnit u:new LeaveUnit[]{LeaveUnit.HALF_DAY_MORNING,LeaveUnit.HALF_DAY_AFTERNOON}){r=oaLeave(LeaveType.SICK,EmployeeCategory.REGULAR,u,0,OA_DAY,OA_DAY,"valid",false,false,true,12,7,50,0);assertEquals(.5,p.calculateChargedDays(r,d->true));assertEquals(0,p.calculateChargedDays(r,d->false));}
+        for(double[] row:new double[][]{{.1,.5},{1,.5},{4,.5},{4.1,1},{8,1}}){r=oaLeave(LeaveType.SICK,EmployeeCategory.REGULAR,LeaveUnit.HOURS,row[0],OA_DAY,OA_DAY,"valid",false,false,true,12,7,50,0);assertEquals(row[1],p.calculateChargedDays(r,d->false));}
+        assertThrows(NullPointerException.class,()->p.assess(null,d->true,OA_DAY));assertThrows(NullPointerException.class,()->p.assess(oaDays(LeaveType.SICK,EmployeeCategory.REGULAR,1,false,false,true,1,1,1,0),null,OA_DAY));
+        for(LeaveType type:LeaveType.values())for(EmployeeCategory category:EmployeeCategory.values())for(int days:new int[]{1,2,3,4,10,11})for(boolean emergency:new boolean[]{false,true}) {
+            a=oaAssess(oaDays(type,category,days,emergency,false,true,12,7,100,0));assertEquals(days,a.chargedDays());
+            boolean cert=type==LeaveType.SICK&&(days>2||(category==EmployeeCategory.PROBATION&&days>1)||(emergency&&days>1));
+            boolean handover=days>=3||(type==LeaveType.ANNUAL&&days>=2)||(category==EmployeeCategory.REGULAR&&days>1);
+            ApprovalTier tier=days>10||(category==EmployeeCategory.CONTRACTOR&&days>3)?ApprovalTier.DIRECTOR:cert||category==EmployeeCategory.PROBATION?ApprovalTier.HUMAN_RESOURCES:days>3||type==LeaveType.PERSONAL?ApprovalTier.MANAGER:ApprovalTier.SUPERVISOR;
+            assertEquals(cert,a.medicalCertificateRequired());assertEquals(handover,a.handoverRequired());assertEquals(tier,a.approvalTier());
+        }
+        for(double hours:new double[]{3.5,4,4.5}) {a=oaAssess(oaLeave(LeaveType.SICK,EmployeeCategory.INTERN,LeaveUnit.HOURS,hours,OA_DAY,OA_DAY,"valid",false,false,true,1,7,50,0));assertEquals(hours==4,a.medicalCertificateRequired());}
+        for(int days:new int[]{1,2}) {a=oaAssess(oaLeave(LeaveType.SICK,EmployeeCategory.INTERN,LeaveUnit.FULL_DAY,0,OA_DAY.plusDays(4),OA_DAY.plusDays(3+days),"valid",false,false,false,1,7,50,0));assertEquals(days>1,a.handoverRequired());assertEquals(days>1,a.violations().contains("handover is required for this request"));}
+    }
+    @Test void oaLeaveDateAndReasonRules() {
+        for(String reason:new String[]{null," ","abcd","abcde","x".repeat(300),"x".repeat(301),"<valid","valid>","12345","12a45"}) {
+            LeaveAssessment a=oaAssess(oaLeave(LeaveType.SICK,EmployeeCategory.REGULAR,LeaveUnit.FULL_DAY,0,OA_DAY,OA_DAY,reason,false,false,true,12,7,50,0));
+            if(reason==null||reason.isBlank()){assertEquals(List.of("reason is required"),a.violations());continue;}
+            assertEquals(reason.length()<5,a.violations().contains("reason must contain at least five characters"));assertEquals(reason.length()>300,a.violations().contains("reason cannot exceed 300 characters"));assertEquals(reason.contains("<")||reason.contains(">"),a.violations().contains("reason contains unsupported markup"));assertEquals(reason.equals("12345"),a.violations().contains("reason cannot contain digits only"));
+        }
+        AdvancedLeaveRequest r=oaDays(LeaveType.SICK,EmployeeCategory.REGULAR,1,false,false,true,12,7,50,0);LeaveAssessment a=new AdvancedLeavePolicy().assess(r,d->false,OA_DAY);assertEquals(List.of("request contains no working time"),a.violations());
+        for(LeaveType type:LeaveType.values())for(boolean emergency:new boolean[]{false,true})for(int offset:new int[]{-1,0,365,366}) {
+            r=oaLeave(type,EmployeeCategory.REGULAR,LeaveUnit.FULL_DAY,0,OA_DAY.plusDays(offset),OA_DAY.plusDays(offset),"valid",emergency,false,true,12,7,50,0);
+            oaViolation(r,"backdated leave is only allowed for emergency sick leave",offset<0&&!(type==LeaveType.SICK&&emergency));oaViolation(r,"leave cannot be requested more than one year ahead",offset>365);
+        }
+        for(int days:new int[]{1,2,5,6,10,11,45,46})for(int notice:new int[]{0,1,2,3,6,7})for(boolean emergency:new boolean[]{false,true}) {
+            r=oaDays(LeaveType.SICK,EmployeeCategory.REGULAR,days,emergency,false,true,12,notice,50,0);
+            oaViolation(r,"multi-day leave requires advance notice",notice==0&&days>1&&!emergency);
+            oaViolation(r,"leave longer than five days requires three days notice",notice<3&&days>5&&!emergency);
+            oaViolation(r,"leave longer than ten days requires seven days notice",notice<7&&days>10&&!emergency);
+            oaViolation(r,"a single request cannot span more than 45 calendar days",days>45);
+        }
+    }
+    @Test void oaLeaveEmploymentAnnualAndUnits() {
+        for(LeaveType type:LeaveType.values())for(EmployeeCategory category:EmployeeCategory.values())for(int months:new int[]{0,1,5,6,11,12,600,601})for(boolean emergency:new boolean[]{false,true}) {
+            AdvancedLeaveRequest r=oaDays(type,category,1,emergency,false,true,months,7,50,0);
+            oaViolation(r,"interns are not eligible for annual leave",category==EmployeeCategory.INTERN&&type==LeaveType.ANNUAL);
+            oaViolation(r,"contractors require twelve months service for annual leave",category==EmployeeCategory.CONTRACTOR&&type==LeaveType.ANNUAL&&months<12);
+            oaViolation(r,"non-emergency personal leave is unavailable during probation",category==EmployeeCategory.PROBATION&&type==LeaveType.PERSONAL&&!emergency);
+            oaViolation(r,"new employees may only request sick leave in their first month",months<1&&type!=LeaveType.SICK);
+            oaViolation(r,"employment duration is outside the supported range",months>600);
+            oaViolation(r,"annual leave requires six months service",type==LeaveType.ANNUAL&&months<6);
+        }
+        for(double balance:new double[]{0,1})for(double carry:new double[]{0,1,5,5.5}) {
+            AdvancedLeaveRequest r=oaDays(LeaveType.ANNUAL,EmployeeCategory.REGULAR,1,false,false,true,12,7,balance,carry);
+            oaViolation(r,"insufficient annual leave balance",balance+carry<1);oaViolation(r,"carry-over balance cannot exceed five days",carry>5);
+        }
+        for(int month:new int[]{3,4})for(double carry:new double[]{0,1}) {LocalDate date=LocalDate.of(2026,month,1);oaViolation(oaLeave(LeaveType.ANNUAL,EmployeeCategory.REGULAR,LeaveUnit.FULL_DAY,0,date,date,"valid",false,false,true,12,7,20,carry),"carry-over leave must be used before April",month==4&&carry>0);}
+        for(int days:new int[]{1,2,15,16})for(boolean remote:new boolean[]{false,true})for(int notice:new int[]{0,1}) {AdvancedLeaveRequest r=oaDays(LeaveType.ANNUAL,EmployeeCategory.REGULAR,days,false,remote,true,12,notice,50,0);oaViolation(r,"annual leave cannot exceed fifteen working days per request",days>15);oaViolation(r,"remote-capable employees must consider remote work for urgent one-day leave",remote&&days==1&&notice==0);}
+        for(LeaveUnit unit:new LeaveUnit[]{LeaveUnit.HALF_DAY_MORNING,LeaveUnit.HALF_DAY_AFTERNOON})for(boolean emergency:new boolean[]{false,true})for(int span:new int[]{0,1}) {AdvancedLeaveRequest r=oaLeave(LeaveType.SICK,EmployeeCategory.INTERN,unit,0,OA_DAY,OA_DAY.plusDays(span),"valid",emergency,false,true,12,7,50,0);oaViolation(r,"half-day leave must start and end on the same date",span==1);oaViolation(r,"emergency leave cannot be limited to a planned morning slot",unit==LeaveUnit.HALF_DAY_MORNING&&emergency);}
+        for(LeaveType type:LeaveType.values())for(double hours:new double[]{.5,1,1.25,1.5,4,4.5}) {AdvancedLeaveRequest r=oaLeave(type,EmployeeCategory.REGULAR,LeaveUnit.HOURS,hours,OA_DAY,OA_DAY,"valid",false,false,true,12,7,50,0);oaViolation(r,"hour leave must be at least one hour",hours<1);oaViolation(r,"annual hour leave must use half-hour increments",type==LeaveType.ANNUAL&&hours==1.25);oaViolation(r,"hour-based sick leave cannot exceed four hours",type==LeaveType.SICK&&hours>4);oaViolation(r,"hour-based personal leave cannot exceed four hours",type==LeaveType.PERSONAL&&hours>4);}
+    }
+    @Test void oaLeaveSickAndPersonalRules() {
+        for(int days:new int[]{1,2,3,4,5,6,30,31})for(boolean emergency:new boolean[]{false,true})for(boolean remote:new boolean[]{false,true})for(EmployeeCategory category:new EmployeeCategory[]{EmployeeCategory.REGULAR,EmployeeCategory.CONTRACTOR}) {
+            AdvancedLeaveRequest r=oaDays(LeaveType.PERSONAL,category,days,emergency,remote,true,12,7,50,0);
+            oaViolation(r,"personal leave cannot exceed three days without an emergency",days>3&&!emergency);oaViolation(r,"personal leave cannot exceed five days",days>5);oaViolation(r,"contractor personal leave is limited to one day",category==EmployeeCategory.CONTRACTOR&&days>1);oaViolation(r,"short personal absence should use remote work when available",remote&&!emergency&&days<=1);
+            r=oaDays(LeaveType.SICK,category,days,emergency,remote,true,12,7,50,0);oaViolation(r,"sick leave longer than thirty days needs a separate medical process",days>30);
+        }
+        for(boolean emergency:new boolean[]{false,true})for(int notice:new int[]{0,1,30,31}) {oaViolation(oaDays(LeaveType.PERSONAL,EmployeeCategory.REGULAR,1,emergency,false,true,12,notice,50,0),"personal leave requires one day notice",notice==0&&!emergency);oaViolation(oaDays(LeaveType.SICK,EmployeeCategory.REGULAR,1,emergency,false,true,12,notice,50,0),"emergency sick leave has inconsistent notice information",emergency&&notice>30);}
+        for(boolean emergency:new boolean[]{false,true})for(int offset:new int[]{0,6}) {oaViolation(oaLeave(LeaveType.SICK,EmployeeCategory.REGULAR,LeaveUnit.FULL_DAY,0,OA_DAY.plusDays(offset),OA_DAY.plusDays(offset),"valid",emergency,false,true,12,7,50,0),"planned sick leave cannot start on Sunday",!emergency&&offset==6);}
+        for(double balance:new double[]{365,366})oaViolation(oaDays(LeaveType.SICK,EmployeeCategory.REGULAR,1,false,false,true,12,7,balance,0),"sick leave balance is outside the supported range",balance>365);
+    }
+    @Test void oaLeaveRecordsInvariants() {
+        for(String id:new String[]{null," "})assertThrows(IllegalArgumentException.class,()->new AdvancedLeaveRequest(id,EmployeeCategory.REGULAR,LeaveType.SICK,OA_DAY,OA_DAY,LeaveUnit.FULL_DAY,0,"valid",false,false,false,1,1,1,0));
+        assertThrows(IllegalArgumentException.class,()->oaLeave(LeaveType.SICK,EmployeeCategory.REGULAR,LeaveUnit.FULL_DAY,0,OA_DAY,OA_DAY.minusDays(1),"valid",false,false,false,1,1,1,0));
+        for(int[] vals:new int[][]{{-1,0,0,0},{0,-1,0,0},{0,0,-1,0},{0,0,0,-1}})assertThrows(IllegalArgumentException.class,()->oaDays(LeaveType.SICK,EmployeeCategory.REGULAR,1,false,false,false,vals[0],vals[1],vals[2],vals[3]));
+        for(double hours:new double[]{-1,0,8.1})assertThrows(IllegalArgumentException.class,()->oaLeave(LeaveType.SICK,EmployeeCategory.REGULAR,LeaveUnit.HOURS,hours,OA_DAY,OA_DAY,"valid",false,false,true,1,1,1,0));
+        assertThrows(IllegalArgumentException.class,()->oaLeave(LeaveType.SICK,EmployeeCategory.REGULAR,LeaveUnit.FULL_DAY,1,OA_DAY,OA_DAY,"valid",false,false,true,1,1,1,0));
+        assertThrows(IllegalArgumentException.class,()->new LeaveAssessment(true,-1,ApprovalTier.SUPERVISOR,false,false,List.of()));assertThrows(IllegalArgumentException.class,()->new LeaveAssessment(true,0,ApprovalTier.SUPERVISOR,false,false,List.of("x")));assertThrows(IllegalArgumentException.class,()->new LeaveAssessment(false,0,ApprovalTier.SUPERVISOR,false,false,List.of()));
+        ArrayList<String> violations=new ArrayList<>(List.of("x"));LeaveAssessment a=new LeaveAssessment(false,0,ApprovalTier.SUPERVISOR,false,false,violations);violations.clear();assertEquals(List.of("x"),a.violations());assertThrows(UnsupportedOperationException.class,()->a.violations().clear());
+    }
+    @Test void oaDatesAndBasicLeavePolicy() {
+        for(String text:new String[]{"2024-02-29","2024/02/29","20240229"," 2024-02-29 "})assertEquals(LocalDate.of(2024,2,29),DateTextParser.parse(text));
+        for(String text:new String[]{null," "})assertEquals("date text must not be blank",assertThrows(IllegalArgumentException.class,()->DateTextParser.parse(text)).getMessage());
+        for(String text:new String[]{"2023-02-29","2026/13/01","20261131","2026-2-02","  nope  "})assertEquals("unsupported date: "+text.trim(),assertThrows(IllegalArgumentException.class,()->DateTextParser.parse(text)).getMessage());
+        DateRange single=new DateRange(OA_DAY,OA_DAY);assertEquals(1,single.businessDays());
+        assertEquals(5,new DateRange(OA_DAY,OA_DAY.plusDays(6)).businessDays());assertEquals(0,new DateRange(OA_DAY.plusDays(5),OA_DAY.plusDays(6)).businessDays());
+        assertTrue(single.overlaps(single));assertTrue(new DateRange(OA_DAY,OA_DAY.plusDays(1)).overlaps(new DateRange(OA_DAY.plusDays(1),OA_DAY.plusDays(2))));
+        assertFalse(single.overlaps(new DateRange(OA_DAY.plusDays(1),OA_DAY.plusDays(2))));assertFalse(single.overlaps(new DateRange(OA_DAY.minusDays(2),OA_DAY.minusDays(1))));
+        assertThrows(NullPointerException.class,()->single.overlaps(null));assertThrows(NullPointerException.class,()->new DateRange(null,OA_DAY));assertThrows(NullPointerException.class,()->new DateRange(OA_DAY,null));assertEquals("end must not be before start",assertThrows(IllegalArgumentException.class,()->new DateRange(OA_DAY,OA_DAY.minusDays(1))).getMessage());
+        LeavePolicy p=new LeavePolicy();assertEquals(1,p.validate(LeaveType.ANNUAL,single,"valid",1));assertEquals(1,p.validate(LeaveType.SICK,single,"valid",0));assertEquals(3,p.validate(LeaveType.PERSONAL,new DateRange(OA_DAY,OA_DAY.plusDays(2)),"valid",0));
+        assertEquals("leave must contain at least one business day",assertThrows(LeaveValidationException.class,()->p.validate(LeaveType.SICK,new DateRange(OA_DAY.plusDays(5),OA_DAY.plusDays(6)),"valid",0)).getMessage());
+        for(String reason:new String[]{null,"    "," abcd "})assertEquals("reason must contain at least 5 characters",assertThrows(LeaveValidationException.class,()->p.validate(LeaveType.SICK,single,reason,0)).getMessage());
+        assertEquals("insufficient annual-leave balance",assertThrows(LeaveValidationException.class,()->p.validate(LeaveType.ANNUAL,single,"valid",0)).getMessage());
+        assertEquals("personal leave cannot exceed 3 business days",assertThrows(LeaveValidationException.class,()->p.validate(LeaveType.PERSONAL,new DateRange(OA_DAY,OA_DAY.plusDays(3)),"valid",0)).getMessage());
+        assertThrows(NullPointerException.class,()->p.validate(null,single,"valid",0));assertThrows(NullPointerException.class,()->p.validate(LeaveType.SICK,null,"valid",0));
+    }
+    private static LeaveRequest oaPending(LeaveType type) {return LeaveRequest.pending(" id "," E ",type,new DateRange(OA_DAY,OA_DAY.plusDays(1))," valid reason ",Instant.parse("2026-02-01T00:00:00Z"));}
+    @Test void oaLeaveRequestLifecycleAndValidation() {
+        Instant now=Instant.parse("2026-02-02T00:00:00Z");LeaveRequest pending=oaPending(LeaveType.ANNUAL);assertEquals("id",pending.id());assertEquals("E",pending.employeeId());assertEquals("valid reason",pending.reason());assertEquals(LeaveStatus.PENDING,pending.status());assertNull(pending.decidedBy());assertNull(pending.decidedAt());assertNull(pending.decisionComment());
+        LeaveRequest approved=pending.approve(" boss ",now);assertEquals(LeaveStatus.APPROVED,approved.status());assertEquals("boss",approved.decidedBy());assertEquals(now,approved.decidedAt());assertNull(approved.decisionComment());assertEquals(pending.period(),approved.period());assertEquals(pending.requestedAt(),approved.requestedAt());assertEquals(pending.id(),approved.id());assertEquals(LeaveStatus.PENDING,pending.status());
+        LeaveRequest rejected=pending.reject(" boss ",now," denied ");assertEquals(LeaveStatus.REJECTED,rejected.status());assertEquals("denied",rejected.decisionComment());assertEquals("boss",rejected.decidedBy());assertEquals(now,rejected.decidedAt());
+        for(LeaveRequest decided:List.of(approved,rejected)){assertEquals("only a pending request can be decided",assertThrows(IllegalStateException.class,()->decided.approve("boss",now)).getMessage());assertEquals("only a pending request can be decided",assertThrows(IllegalStateException.class,()->decided.reject("boss",now,"comment")).getMessage());}
+        for(String bad:new String[]{null," "}){
+            assertEquals("id must not be blank",assertThrows(IllegalArgumentException.class,()->LeaveRequest.pending(bad,"E",LeaveType.SICK,pending.period(),"reason",now)).getMessage());
+            assertEquals("employeeId must not be blank",assertThrows(IllegalArgumentException.class,()->LeaveRequest.pending("id",bad,LeaveType.SICK,pending.period(),"reason",now)).getMessage());
+            assertEquals("reason must not be blank",assertThrows(IllegalArgumentException.class,()->LeaveRequest.pending("id","E",LeaveType.SICK,pending.period(),bad,now)).getMessage());
+            assertEquals("decidedBy must not be blank",assertThrows(IllegalArgumentException.class,()->pending.approve(bad,now)).getMessage());
+            assertEquals("comment must not be blank",assertThrows(IllegalArgumentException.class,()->pending.reject("boss",now,bad)).getMessage());
+            assertEquals("employeeId must not be blank",assertThrows(IllegalArgumentException.class,()->new SubmitLeaveCommand(bad,LeaveType.SICK,pending.period(),"reason")).getMessage());
+        }
+        for(int i=0;i<3;i++){final int x=i;assertEquals("pending request must not contain a decision",assertThrows(IllegalArgumentException.class,()->new LeaveRequest("id","E",LeaveType.SICK,pending.period(),"reason",LeaveStatus.PENDING,now,x==0?"boss":null,x==1?now:null,x==2?"x":null)).getMessage());}
+        assertThrows(NullPointerException.class,()->pending.approve("boss",null));
+        SubmitLeaveCommand command=new SubmitLeaveCommand(" E ",LeaveType.SICK,pending.period(),null);assertEquals("E",command.employeeId());assertNull(command.reason());assertThrows(NullPointerException.class,()->new SubmitLeaveCommand("E",null,pending.period(),"reason"));assertThrows(NullPointerException.class,()->new SubmitLeaveCommand("E",LeaveType.SICK,null,"reason"));
+    }
+    @Test void oaLeaveServiceSubmissionAndApproval() {
+        for(LeaveType type:LeaveType.values()) {
+            LeaveRequestRepository repo=org.mockito.Mockito.mock(LeaveRequestRepository.class);LeaveBalanceRepository balance=org.mockito.Mockito.mock(LeaveBalanceRepository.class);NotificationGateway notifications=org.mockito.Mockito.mock(NotificationGateway.class);RequestIdGenerator ids=org.mockito.Mockito.mock(RequestIdGenerator.class);
+            Instant now=Instant.parse("2026-02-02T10:00:00Z");Clock clock=Clock.fixed(now,ZoneOffset.UTC);DateRange range=new DateRange(OA_DAY,OA_DAY.plusDays(1));
+            org.mockito.Mockito.when(ids.nextId()).thenReturn("new-id");org.mockito.Mockito.when(balance.remainingAnnualDays("E")).thenReturn(2);
+            org.mockito.Mockito.when(repo.save(org.mockito.ArgumentMatchers.any())).thenAnswer(invocation->invocation.getArgument(0));
+            LeaveRequestService service=new LeaveRequestService(repo,balance,notifications,ids,new LeavePolicy(),clock);
+            LeaveRequest r=service.submit(new SubmitLeaveCommand(" E ",type,range," valid reason "));
+            assertEquals("new-id",r.id());assertEquals("E",r.employeeId());assertEquals(type,r.type());assertEquals(range,r.period());assertEquals("valid reason",r.reason());assertEquals(LeaveStatus.PENDING,r.status());assertEquals(now,r.requestedAt());
+            org.mockito.Mockito.verify(repo).existsActiveOverlap("E",range);org.mockito.Mockito.verify(repo).save(r);org.mockito.Mockito.verify(notifications).requestSubmitted(r);org.mockito.Mockito.verify(ids).nextId();
+            if(type==LeaveType.ANNUAL)org.mockito.Mockito.verify(balance).remainingAnnualDays("E");else org.mockito.Mockito.verifyNoInteractions(balance);
+            org.mockito.Mockito.when(repo.findById("new-id")).thenReturn(Optional.of(r));
+            LeaveRequest approved=service.approve(" new-id "," boss ");assertEquals(LeaveStatus.APPROVED,approved.status());assertEquals("boss",approved.decidedBy());assertEquals(now,approved.decidedAt());
+            org.mockito.Mockito.verify(repo).save(approved);org.mockito.Mockito.verify(notifications).requestApproved(approved);org.mockito.Mockito.verify(repo).findById("new-id");
+            if(type==LeaveType.ANNUAL)org.mockito.Mockito.verify(balance).deductAnnualDays("E",2);else org.mockito.Mockito.verifyNoInteractions(balance);
+            LeaveRequest rejected=service.reject("new-id"," boss "," deny it ");assertEquals(LeaveStatus.REJECTED,rejected.status());assertEquals("deny it",rejected.decisionComment());org.mockito.Mockito.verify(repo).save(rejected);org.mockito.Mockito.verify(notifications).requestRejected(rejected);
+        }
+    }
+    @Test void oaLeaveServiceReturnsSavedObjectAndStopsOnFailure() {
+        LeaveRequestRepository repo=org.mockito.Mockito.mock(LeaveRequestRepository.class);LeaveBalanceRepository balance=org.mockito.Mockito.mock(LeaveBalanceRepository.class);NotificationGateway notifications=org.mockito.Mockito.mock(NotificationGateway.class);RequestIdGenerator ids=org.mockito.Mockito.mock(RequestIdGenerator.class);
+        Instant now=Instant.parse("2026-02-02T10:00:00Z");LeaveRequestService service=new LeaveRequestService(repo,balance,notifications,ids,new LeavePolicy(),Clock.fixed(now,ZoneOffset.UTC));
+        LeaveRequest saved=oaPending(LeaveType.SICK);org.mockito.Mockito.when(ids.nextId()).thenReturn("generated");org.mockito.Mockito.when(repo.save(org.mockito.ArgumentMatchers.any())).thenReturn(saved);
+        assertSame(saved,service.submit(new SubmitLeaveCommand("E",LeaveType.SICK,saved.period(),"valid reason")));org.mockito.Mockito.verify(notifications).requestSubmitted(saved);
+        org.mockito.Mockito.when(repo.findById("id")).thenReturn(Optional.of(saved));assertSame(saved,service.approve("id","boss"));org.mockito.Mockito.verify(notifications).requestApproved(saved);assertSame(saved,service.reject("id","boss","rejected"));org.mockito.Mockito.verify(notifications).requestRejected(saved);
+        org.mockito.Mockito.reset(repo,balance,notifications,ids);
+        org.mockito.Mockito.when(repo.existsActiveOverlap("E",saved.period())).thenReturn(true);
+        assertEquals("leave period overlaps an active request",assertThrows(LeaveValidationException.class,()->service.submit(new SubmitLeaveCommand("E",LeaveType.SICK,saved.period(),"valid"))).getMessage());org.mockito.Mockito.verifyNoInteractions(ids,notifications,balance);org.mockito.Mockito.verify(repo,org.mockito.Mockito.never()).save(org.mockito.ArgumentMatchers.any());
+        org.mockito.Mockito.reset(repo);
+        assertThrows(LeaveValidationException.class,()->service.submit(new SubmitLeaveCommand("E",LeaveType.SICK,saved.period(),"bad")));org.mockito.Mockito.verifyNoInteractions(repo,ids,notifications);
+        org.mockito.Mockito.when(repo.findById("id")).thenReturn(Optional.of(saved));
+        assertEquals("employee cannot approve their own request",assertThrows(LeaveValidationException.class,()->service.approve("id"," E ")).getMessage());assertEquals("employee cannot reject their own request",assertThrows(LeaveValidationException.class,()->service.reject("id"," E ","reason")).getMessage());
+        for(String bad:new String[]{null," "}){
+            assertEquals("requestId must not be blank",assertThrows(IllegalArgumentException.class,()->service.approve(bad,"boss")).getMessage());assertEquals("requestId must not be blank",assertThrows(IllegalArgumentException.class,()->service.reject(bad,"boss","reason")).getMessage());
+            assertEquals("approverId must not be blank",assertThrows(IllegalArgumentException.class,()->service.approve("id",bad)).getMessage());assertEquals("approverId must not be blank",assertThrows(IllegalArgumentException.class,()->service.reject("id",bad,"reason")).getMessage());
+        }
+        assertEquals("leave request not found: missing",assertThrows(LeaveRequestNotFoundException.class,()->service.approve(" missing ","boss")).getMessage());
+        assertThrows(NullPointerException.class,()->service.submit(null));org.mockito.Mockito.verifyNoInteractions(balance,notifications,ids);org.mockito.Mockito.verify(repo,org.mockito.Mockito.never()).save(org.mockito.ArgumentMatchers.any());
+        org.mockito.Mockito.when(repo.findById("id")).thenReturn(Optional.of(saved.approve("boss",now)));assertThrows(IllegalStateException.class,()->service.approve("id","other"));org.mockito.Mockito.verifyNoInteractions(balance,notifications);
+    }

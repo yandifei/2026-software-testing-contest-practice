@@ -1,0 +1,158 @@
+    @Test
+    void coursePriceBoundariesAndDiscountRounding() {
+        var policy = new net.mooctest.course.service.PricePolicy();
+        for (BigDecimal invalid : new BigDecimal[]{null, new BigDecimal("-0.01"), new BigDecimal("100000"), new BigDecimal("99999.991")}) {
+            var ex = assertThrows(net.mooctest.error.BusinessException.class, () -> policy.normalizePrice(invalid));
+            assertEquals(net.mooctest.error.ErrorCode.INVALID_PRICE, ex.code());
+            assertEquals("Price must be between 0 and 99999.99", ex.getMessage());
+        }
+        assertEquals(new BigDecimal("0.00"), policy.normalizePrice(BigDecimal.ZERO));
+        assertEquals(new BigDecimal("99999.99"), policy.normalizePrice(new BigDecimal("99999.99")));
+        assertEquals(new BigDecimal("1.24"), policy.normalizePrice(new BigDecimal("1.235")));
+        assertEquals(new BigDecimal("12.34"), policy.discountedPrice(new BigDecimal("12.34"), 0));
+        assertEquals(new BigDecimal("2.47"), policy.discountedPrice(new BigDecimal("12.34"), 80));
+        assertEquals(new BigDecimal("9.26"), policy.discountedPrice(new BigDecimal("12.34"), 25));
+        for (int invalid : new int[]{-1, 81}) {
+            var ex = assertThrows(net.mooctest.error.BusinessException.class, () -> policy.discountedPrice(BigDecimal.ONE, invalid));
+            assertEquals(net.mooctest.error.ErrorCode.INVALID_DISCOUNT, ex.code());
+            assertEquals("Discount percent must be between 0 and 80", ex.getMessage());
+        }
+    }
+
+    @Test
+    void courseRecordNormalizesAndPublishesOnlyDraft() {
+        var time = Instant.parse("2026-01-01T00:00:00Z");
+        var course = new net.mooctest.course.domain.Course(" id ", " Title ", new BigDecimal("1.235"), net.mooctest.course.domain.CourseStatus.DRAFT, time);
+        assertEquals("id", course.id());
+        assertEquals("Title", course.title());
+        assertEquals(new BigDecimal("1.24"), course.price());
+        assertEquals(time, course.createdAt());
+        var published = course.publish();
+        assertEquals(net.mooctest.course.domain.CourseStatus.DRAFT, course.status());
+        assertEquals(net.mooctest.course.domain.CourseStatus.PUBLISHED, published.status());
+        assertEquals(course.id(), published.id());
+        assertEquals(course.title(), published.title());
+        assertEquals(course.price(), published.price());
+        assertEquals(time, published.createdAt());
+        for (var status : new net.mooctest.course.domain.CourseStatus[]{net.mooctest.course.domain.CourseStatus.PUBLISHED, net.mooctest.course.domain.CourseStatus.ARCHIVED}) {
+            var other = new net.mooctest.course.domain.Course("a", "title", BigDecimal.ZERO, status, time);
+            var ex = assertThrows(net.mooctest.error.BusinessException.class, other::publish);
+            assertEquals(net.mooctest.error.ErrorCode.COURSE_ALREADY_PUBLISHED, ex.code());
+            assertEquals("Only a draft course can be published", ex.getMessage());
+        }
+        for (String invalid : new String[]{null, "", " \t "}) {
+            Class<? extends Throwable> expected = invalid == null ? NullPointerException.class : IllegalArgumentException.class;
+            assertThrows(expected, () -> new net.mooctest.course.domain.Course(invalid, "title", BigDecimal.ZERO, net.mooctest.course.domain.CourseStatus.DRAFT, time));
+            assertThrows(expected, () -> new net.mooctest.course.domain.Course("id", invalid, BigDecimal.ZERO, net.mooctest.course.domain.CourseStatus.DRAFT, time));
+        }
+        assertThrows(NullPointerException.class, () -> new net.mooctest.course.domain.Course("id", "title", null, net.mooctest.course.domain.CourseStatus.DRAFT, time));
+        assertThrows(NullPointerException.class, () -> new net.mooctest.course.domain.Course("id", "title", BigDecimal.ZERO, null, time));
+        assertThrows(NullPointerException.class, () -> new net.mooctest.course.domain.Course("id", "title", BigDecimal.ZERO, net.mooctest.course.domain.CourseStatus.DRAFT, null));
+    }
+
+    @Test
+    void courseCreationRejectsDuplicateAndInvalidTitles() {
+        var repository = new net.mooctest.course.adapter.InMemoryCourseRepository();
+        var clock = Clock.fixed(Instant.parse("2026-01-01T00:00:00Z"), ZoneOffset.UTC);
+        var service = new net.mooctest.course.service.CourseService(repository, id -> List.of(), () -> "course-1", new net.mooctest.course.service.PricePolicy(), clock);
+        assertFalse(repository.existsByTitleIgnoreCase("absent"));
+        var course = service.createCourse("  Linear   Algebra  ", new BigDecimal("25.125"));
+        assertEquals("Linear Algebra", course.title());
+        assertEquals("course-1", course.id());
+        assertEquals(new BigDecimal("25.13"), course.price());
+        assertEquals(clock.instant(), course.createdAt());
+        assertSame(course, service.getCourse("course-1"));
+        assertTrue(repository.existsByTitleIgnoreCase("LINEAR ALGEBRA"));
+        assertFalse(repository.existsByTitleIgnoreCase("geometry"));
+        assertEquals(net.mooctest.error.ErrorCode.DUPLICATE_COURSE_TITLE, assertThrows(net.mooctest.error.BusinessException.class, () -> service.createCourse("linear algebra", BigDecimal.ONE)).code());
+        var missing = assertThrows(net.mooctest.error.BusinessException.class, () -> service.getCourse("absent"));
+        assertEquals(net.mooctest.error.ErrorCode.COURSE_NOT_FOUND, missing.code());
+        assertEquals("Course not found: absent", missing.getMessage());
+        assertEquals(net.mooctest.error.ErrorCode.COURSE_HAS_NO_CHAPTERS, assertThrows(net.mooctest.error.BusinessException.class, () -> service.publishCourse("course-1")).code());
+        assertEquals(net.mooctest.course.domain.CourseStatus.DRAFT, service.getCourse("course-1").status());
+        for (String invalid : new String[]{null, "", "  ", "ab", "a".repeat(81)}) {
+            var ex = assertThrows(net.mooctest.error.BusinessException.class, () -> service.createCourse(invalid, BigDecimal.ONE));
+            assertEquals(net.mooctest.error.ErrorCode.INVALID_COURSE_TITLE, ex.code());
+            assertEquals("Course title length must be between 3 and 80 characters", ex.getMessage());
+        }
+        assertEquals("abc", service.createCourse("abc", BigDecimal.ZERO).title());
+        assertEquals("a".repeat(80), service.createCourse("a".repeat(80), BigDecimal.ZERO).title());
+    }
+
+    @Test
+    void courseControllerAndCatalogPreserveSortedContent() {
+        var repository = new net.mooctest.course.adapter.InMemoryCourseRepository();
+        net.mooctest.course.port.ChapterRepository chapters = id -> List.of(
+                new net.mooctest.course.domain.Chapter("c3", id, "zeta", 1),
+                new net.mooctest.course.domain.Chapter("c2", id, "Alpha", 1),
+                new net.mooctest.course.domain.Chapter("c1", id, "first", 0));
+        net.mooctest.course.port.VideoRepository videos = ids -> {
+            assertEquals(java.util.Set.of("c1", "c2", "c3"), ids);
+            return List.of(new net.mooctest.course.domain.Video("v3", "c1", "zeta", 30, 1),
+                    new net.mooctest.course.domain.Video("v2", "c1", "Alpha", 20, 1),
+                    new net.mooctest.course.domain.Video("v1", "c1", "first", 10, 0));
+        };
+        var service = new net.mooctest.course.service.CourseService(repository, chapters, () -> "course", new net.mooctest.course.service.PricePolicy(), Clock.fixed(Instant.EPOCH, ZoneOffset.UTC));
+        var catalog = new net.mooctest.course.service.CatalogService(service, chapters, videos);
+        var controller = new net.mooctest.course.web.CourseController(service, catalog);
+        var response = controller.create(new net.mooctest.course.web.CreateCourseRequest("Algebra", new BigDecimal("10")));
+        assertEquals(201, response.getStatusCode().value());
+        assertEquals(java.net.URI.create("/api/courses/course"), response.getHeaders().getLocation());
+        assertTrue(response.getBody().success());
+        assertNull(response.getBody().error());
+        assertEquals("Algebra", response.getBody().data().title());
+        assertEquals(response.getBody(), controller.get("course"));
+        var published = controller.publish("course");
+        assertTrue(published.success());
+        assertEquals(net.mooctest.course.domain.CourseStatus.PUBLISHED, published.data().status());
+        assertEquals(published.data(), service.getCourse("course"));
+        var result = controller.catalog("course");
+        assertTrue(result.success());
+        assertNull(result.error());
+        assertEquals("course", result.data().courseId());
+        assertEquals(List.of("c1", "c2", "c3"), result.data().chapters().stream().map(net.mooctest.course.domain.ChapterView::id).toList());
+        assertEquals("first", result.data().chapters().get(0).title());
+        assertEquals(List.of(new net.mooctest.course.domain.VideoView("v1", "first", 10), new net.mooctest.course.domain.VideoView("v2", "Alpha", 20), new net.mooctest.course.domain.VideoView("v3", "zeta", 30)), result.data().chapters().get(0).videos());
+        assertEquals(List.of(), result.data().chapters().get(1).videos());
+        assertThrows(UnsupportedOperationException.class, () -> result.data().chapters().clear());
+        assertThrows(UnsupportedOperationException.class, () -> result.data().chapters().get(0).videos().clear());
+        var emptyCatalog = new net.mooctest.course.service.CatalogService(service, new net.mooctest.course.adapter.InMemoryChapterRepository(), new net.mooctest.course.adapter.InMemoryVideoRepository());
+        assertEquals(List.of(), emptyCatalog.getCatalog("course").chapters());
+        assertEquals(List.of(), new net.mooctest.course.adapter.InMemoryVideoRepository().findByChapterIds(java.util.Set.of("c")));
+        var ids = new net.mooctest.course.adapter.UuidGenerator();
+        assertEquals(4, java.util.UUID.fromString(ids.nextId()).version());
+    }
+
+    @Test
+    void restErrorsExposeStatusCodeAndMessage() throws Exception {
+        var handler = new net.mooctest.course.web.RestExceptionHandler();
+        var codes = net.mooctest.error.ErrorCode.values();
+        int[] statuses = {404, 409, 400, 400, 400, 409, 422};
+        for (int i = 0; i < codes.length; i++) {
+            var response = handler.handleBusinessException(new net.mooctest.error.BusinessException(codes[i], "detail"));
+            assertEquals(statuses[i], response.getStatusCode().value());
+            assertFalse(response.getBody().success());
+            assertNull(response.getBody().data());
+            assertEquals(codes[i].name(), response.getBody().error().code());
+            assertEquals("detail", response.getBody().error().message());
+        }
+        assertThrows(NullPointerException.class, () -> new net.mooctest.error.BusinessException(null, "detail"));
+        var binding = new org.springframework.validation.BeanPropertyBindingResult(new Object(), "request");
+        var parameter = new org.springframework.core.MethodParameter(net.mooctest.course.web.CourseController.class.getMethod("create", net.mooctest.course.web.CreateCourseRequest.class), 0);
+        var exception = new org.springframework.web.bind.MethodArgumentNotValidException(parameter, binding);
+        var empty = handler.handleValidation(exception);
+        assertEquals(400, empty.getStatusCode().value());
+        assertEquals("Request validation failed", empty.getBody().error().message());
+        binding.addError(new org.springframework.validation.FieldError("request", "title", "required"));
+        binding.addError(new org.springframework.validation.FieldError("request", "price", "negative"));
+        var error = handler.handleValidation(exception);
+        assertEquals(400, error.getStatusCode().value());
+        assertFalse(error.getBody().success());
+        assertNull(error.getBody().data());
+        assertEquals("VALIDATION_ERROR", error.getBody().error().code());
+        assertEquals("title: required", error.getBody().error().message());
+        var method = net.mooctest.config.TimeConfiguration.class.getDeclaredMethod("systemClock");
+        method.setAccessible(true);
+        var clock = (Clock) method.invoke(new net.mooctest.config.TimeConfiguration());
+        assertEquals(ZoneOffset.UTC, clock.getZone());
+    }

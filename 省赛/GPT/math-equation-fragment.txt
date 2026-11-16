@@ -1,0 +1,124 @@
+    private net.mooctest.expression.engine.EquationSolver equationFor(java.util.function.DoubleUnaryOperator function, double result) throws Exception {
+        var constructor = net.mooctest.expression.engine.EquationSolver.class.getDeclaredConstructor(String.class, double.class, String.class, net.mooctest.expression.engine.ManyToOneNumberFunction.class);
+        constructor.setAccessible(true);
+        var input = new net.mooctest.expression.engine.ManyToOneNumberFunction("testfunction") {
+            @Override public double run(double... values) { return function.applyAsDouble(values[0]); }
+        };
+        return constructor.newInstance("f(x)", result, "equation", input);
+    }
+
+    @Test
+    void equationNewtonSolvesKnownRootsAndRejectsNonconvergence() throws Exception {
+        var solver = equationFor(x -> x * x, 9);
+        assertEquals(9, solver.getResult());
+        assertFalse(solver.isBigDecimal());
+        assertTrue(solver.isUnBigDecimal());
+        assertTrue(solver.isUseNewton());
+        assertEquals(100, solver.getMaxIter());
+        assertEquals(1e-12, solver.getTol());
+        assertEquals(2, solver.getNewtonInitialX());
+        assertEquals(1, solver.getBisectionLeft());
+        assertEquals(3, solver.getBisectionRight());
+        assertEquals(3, solver.solveNewton(1e-10, 100)[0], 1e-8);
+        solver.setNewtonInitialX(3);
+        org.junit.jupiter.api.Assertions.assertArrayEquals(new double[]{3, 1}, solver.solveNewton(1e-10, 1));
+        solver.setNewtonInitialX(-2);
+        assertEquals(-2, solver.getNewtonInitialX());
+        assertEquals(-3, solver.solveNewton(1e-10, 100)[0], 1e-8);
+        assertThrows(ArithmeticException.class, () -> solver.solveNewton(1e-12, 0));
+        var constant = equationFor(x -> 4, 3);
+        assertTrue(assertThrows(ArithmeticException.class, () -> constant.solveNewton(1e-12, 10)).getMessage().contains("导数过小"));
+        var linear = equationFor(x -> 2 * x + 1, 9);
+        assertEquals(4, linear.calculation(false).getResult().doubleValue(), 1e-8);
+        assertThrows(UnsupportedOperationException.class, linear::convertToMultiPrecisionSupported);
+        assertThrows(UnsupportedOperationException.class, () -> linear.calculationBigDecimals(false));
+    }
+
+    @Test
+    void equationBisectionRespectsBracketsAndSettings() throws Exception {
+        var solver = equationFor(x -> x * x, 9);
+        solver.setBisectionLeft(0);
+        solver.setBisectionRight(8);
+        solver.setUseNewton(false);
+        solver.setTol(1e-10);
+        solver.setMaxIter(80);
+        assertEquals(0, solver.getBisectionLeft());
+        assertEquals(8, solver.getBisectionRight());
+        assertFalse(solver.isUseNewton());
+        assertEquals(1e-10, solver.getTol());
+        assertEquals(80, solver.getMaxIter());
+        org.junit.jupiter.api.Assertions.assertArrayEquals(new double[]{3, 3}, solver.solveBisection(1e-10, 80));
+        assertEquals(3, solver.calculation(true).getResult().doubleValue(), 1e-8);
+        org.junit.jupiter.api.Assertions.assertArrayEquals(new double[]{0, 0}, solver.solveBisection(1e-10, 0));
+        org.junit.jupiter.api.Assertions.assertArrayEquals(new double[]{0, 7}, solver.solveBisection(4, 7));
+        solver.setBisectionLeft(4);
+        assertThrows(IllegalArgumentException.class, () -> solver.solveBisection(1e-10, 80));
+        solver.setBisectionLeft(3);
+        solver.setBisectionRight(5);
+        assertEquals(3, solver.solveBisection(1e-9, 80)[0], 1e-7);
+    }
+
+    @Test
+    void equationCompilerRejectsMalformedEquationsAndReportsUnavailableDependency() {
+        for (String expression : new String[]{"x", "x=2=3"}) {
+            assertThrows(IllegalArgumentException.class, () -> net.mooctest.expression.engine.EquationSolver.compile(expression, "equation"));
+            assertThrows(IllegalArgumentException.class, () -> net.mooctest.expression.engine.EquationSolverExpression.compile(expression, "equation"));
+        }
+        assertThrows(NumberFormatException.class, () -> net.mooctest.expression.engine.EquationSolver.compile("x=abc", "equation"));
+        // The bundled compiler generates an import of the original upstream package.
+        var failure = assertThrows(RuntimeException.class, () -> net.mooctest.expression.engine.DynamicFunctionCompiler.compile("linear", "x + 1", new String[]{"x"}));
+        assertEquals("动态函数生成失败", failure.getMessage());
+        assertNotNull(failure.getCause());
+        assertTrue(failure.getCause().getMessage().contains("编译错误"));
+        new net.mooctest.expression.engine.DynamicFunctionCompiler();
+        assertEquals("missing", new net.mooctest.expression.engine.EquationSolver.NoRootFoundException("missing").getMessage());
+    }
+
+    @Test
+    void equationCalculatorRegistrationChecksTypeAndPrecision() {
+        String firstName = "equationRegistryOne";
+        String secondName = "equationRegistryTwo";
+        net.mooctest.expression.engine.CalculationManagement.unregister(firstName);
+        net.mooctest.expression.engine.CalculationManagement.unregister(secondName);
+        try {
+            var first = net.mooctest.expression.engine.SingletonEquationSolving.getInstance(firstName);
+            var second = net.mooctest.expression.engine.SingletonEquationSolvingTwo.getInstance(secondName);
+            assertSame(first, net.mooctest.expression.engine.SingletonEquationSolving.getInstance(firstName));
+            assertSame(second, net.mooctest.expression.engine.SingletonEquationSolvingTwo.getInstance(secondName));
+            assertThrows(net.mooctest.expression.engine.ExtractException.class, () -> net.mooctest.expression.engine.SingletonEquationSolving.getInstance(secondName));
+            assertThrows(net.mooctest.expression.engine.ExtractException.class, () -> net.mooctest.expression.engine.SingletonEquationSolvingTwo.getInstance(firstName));
+            assertEquals(" x = 3 ", first.formatStr(" x = 3 "));
+            assertEquals(" x = 3 ", second.formatStr(" x = 3 "));
+            assertThrows(UnsupportedOperationException.class, () -> first.compileBigDecimal("x=3", true));
+            assertThrows(UnsupportedOperationException.class, () -> second.compileBigDecimal("x=3", true));
+            assertThrows(IllegalArgumentException.class, () -> first.compile("bad", true));
+            assertThrows(IllegalArgumentException.class, () -> second.compile("bad", true));
+            assertThrows(IllegalArgumentException.class, () -> first.calculation("bad", false));
+            assertThrows(IllegalArgumentException.class, () -> second.calculation("bad", false));
+        } finally {
+            net.mooctest.expression.engine.CalculationManagement.unregister(firstName);
+            net.mooctest.expression.engine.CalculationManagement.unregister(secondName);
+        }
+    }
+
+    @Test
+    void jvmFunctionSignatureValidationAndRegistration() {
+        var methods = net.mooctest.expression.engine.JvmExpressionFunction.getRegisteredMethods();
+        var saved = new java.util.LinkedHashMap<>(methods);
+        try {
+            methods.clear();
+            assertEquals("public static double f() { return 2; }", net.mooctest.expression.engine.JvmExpressionFunction.convertToStaticMethodSource("f()=2"));
+            assertEquals("public static double sum(double x, double y) { return x+y; }", net.mooctest.expression.engine.JvmExpressionFunction.convertToStaticMethodSource("sum(x, y)=x+y"));
+            for (String invalid : new String[]{"f(x)", "f(x)=x=2", "f=x", "f(x=x", "f1(x)=x"}) {
+                assertThrows(IllegalArgumentException.class, () -> net.mooctest.expression.engine.JvmExpressionFunction.convertToStaticMethodSource(invalid));
+            }
+            assertThrows(IllegalArgumentException.class, () -> net.mooctest.expression.engine.JvmExpressionFunction.registerJvmFunction("bad"));
+            assertThrows(IllegalArgumentException.class, () -> net.mooctest.expression.engine.JvmExpressionFunction.registerJvmFunction("private double f() {}"));
+            net.mooctest.expression.engine.JvmExpressionFunction.registerFunction("square(x)=x*x");
+            assertEquals("public static double square(double x) { return x*x; }", methods.get("double square"));
+            assertEquals(1, methods.size());
+        } finally {
+            methods.clear();
+            methods.putAll(saved);
+        }
+    }

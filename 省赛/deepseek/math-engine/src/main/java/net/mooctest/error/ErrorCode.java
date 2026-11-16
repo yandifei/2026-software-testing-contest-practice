@@ -1,0 +1,11 @@
+package net.mooctest.error;
+
+public enum ErrorCode {
+    COURSE_NOT_FOUND,
+    DUPLICATE_COURSE_TITLE,
+    INVALID_COURSE_TITLE,
+    INVALID_PRICE,
+    INVALID_DISCOUNT,
+    COURSE_ALREADY_PUBLISHED,
+    COURSE_HAS_NO_CHAPTERS
+}

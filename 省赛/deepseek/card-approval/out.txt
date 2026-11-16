@@ -1,0 +1,59 @@
+[INFO] Scanning for projects...
+[INFO] 
+[INFO] ---------------------< net.mooctest:card-approval >---------------------
+[INFO] Building card-approval 1.0.0
+[INFO]   from pom.xml
+[INFO] --------------------------------[ jar ]---------------------------------
+[INFO] 
+[INFO] --- clean:3.2.0:clean (default-clean) @ card-approval ---
+[INFO] Deleting B:\�������Դ���\ʡ��\deepseek\card-approval\target
+[INFO] 
+[INFO] --- enforcer:3.5.0:enforce (enforce-maven-version) @ card-approval ---
+[INFO] Rule 0: org.apache.maven.enforcer.rules.version.RequireMavenVersion passed
+[INFO] Rule 1: org.apache.maven.enforcer.rules.version.RequireJavaVersion passed
+[INFO] 
+[INFO] --- jacoco:0.8.11:prepare-agent (prepare-agent) @ card-approval ---
+[INFO] argLine set to -javaagent:C:\\Users\\yandifei\\.m2\\repository\\org\\jacoco\\org.jacoco.agent\\0.8.11\\org.jacoco.agent-0.8.11-runtime.jar=destfile=B:\\�������Դ���\\ʡ��\\deepseek\\card-approval\\target\\jacoco.exec
+[INFO] 
+[INFO] --- resources:3.3.1:resources (default-resources) @ card-approval ---
+[INFO] skip non existing resourceDirectory B:\�������Դ���\ʡ��\deepseek\card-approval\src\main\resources
+[INFO] 
+[INFO] --- compiler:3.12.1:compile (default-compile) @ card-approval ---
+[INFO] Recompiling the module because of changed source code.
+[INFO] Compiling 103 source files with javac [debug parameters target 21] to target\classes
+[INFO] 
+[INFO] --- resources:3.3.1:testResources (default-testResources) @ card-approval ---
+[INFO] skip non existing resourceDirectory B:\�������Դ���\ʡ��\deepseek\card-approval\src\test\resources
+[INFO] 
+[INFO] --- compiler:3.12.1:testCompile (default-testCompile) @ card-approval ---
+[INFO] Recompiling the module because of changed dependency.
+[INFO] Compiling 1 source file with javac [debug parameters target 21] to target\test-classes
+[INFO] 
+[INFO] --- surefire:3.2.5:test (default-test) @ card-approval ---
+[INFO] Using auto detected provider org.apache.maven.surefire.junitplatform.JUnitPlatformProvider
+[INFO] 
+[INFO] -------------------------------------------------------
+[INFO]  T E S T S
+[INFO] -------------------------------------------------------
+[INFO] Running net.mooctest.StudentTest
+Java HotSpot(TM) 64-Bit Server VM warning: Sharing is only supported for boot loader classes because bootstrap classpath has been appended
+WARNING: A Java agent has been loaded dynamically (C:\Users\yandifei\.m2\repository\net\bytebuddy\byte-buddy-agent\1.14.15\byte-buddy-agent-1.14.15.jar)
+WARNING: If a serviceability tool is in use, please run with -XX:+EnableDynamicAgentLoading to hide this warning
+WARNING: If a serviceability tool is not in use, please run with -Djdk.instrument.traceUsage for more information
+WARNING: Dynamic loading of agents will be disallowed by default in a future release
+[INFO] Tests run: 109, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 3.270 s -- in net.mooctest.StudentTest
+[INFO] 
+[INFO] Results:
+[INFO] 
+[INFO] Tests run: 109, Failures: 0, Errors: 0, Skipped: 0
+[INFO] 
+[INFO] 
+[INFO] --- jacoco:0.8.11:report (report) @ card-approval ---
+[INFO] Loading execution data file B:\�������Դ���\ʡ��\deepseek\card-approval\target\jacoco.exec
+[INFO] Analyzed bundle 'card-approval' with 97 classes
+[INFO] ------------------------------------------------------------------------
+[INFO] BUILD SUCCESS
+[INFO] ------------------------------------------------------------------------
+[INFO] Total time:  8.840 s
+[INFO] Finished at: 2026-11-15T14:46:25+08:00
+[INFO] ------------------------------------------------------------------------

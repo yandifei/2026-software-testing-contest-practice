@@ -1,0 +1,52 @@
+Project=math-assessment  TotalMutations=2529
+
+=== 各 provider 状态分布 ===
+GPT\rewrite    KILLED=2374 SURVIVED= 114 NO_COV=  36 TIMEOUT=  4 RUN_ERR= 0
+deepseek       KILLED=2427 SURVIVED=  70 NO_COV=  27 TIMEOUT=  4 RUN_ERR= 0
+glm            KILLED=2324 SURVIVED= 158 NO_COV=  40 TIMEOUT=  6 RUN_ERR= 0
+相互借鉴           KILLED=2206 SURVIVED=  73 NO_COV=  17 TIMEOUT=  4 RUN_ERR= 0
+
+=== 基线(deepseek)未杀: 102 条; 其中其他项目能杀(免费可借鉴): 43 条 ===
+expression.engine.ComplexCalculation       calculation                      L76   org.pitest.mutationtest.engine.gregor.mutators.RemoveConditionalMutator_EQUAL_ELSE base=SURVIVED     by=GPT\rewrite
+expression.engine.ComplexCalculation       compile                          L83   org.pitest.mutationtest.engine.gregor.mutators.RemoveConditionalMutator_EQUAL_ELSE base=SURVIVED     by=GPT\rewrite
+expression.engine.ComplexCalculation       compileBigDecimal                L91   org.pitest.mutationtest.engine.gregor.mutators.RemoveConditionalMutator_EQUAL_ELSE base=SURVIVED     by=GPT\rewrite
+expression.engine.ComplexCalculation       check                            L120  org.pitest.mutationtest.engine.gregor.mutators.RemoveConditionalMutator_ORDER_ELSE base=SURVIVED     by=GPT\rewrite,glm
+expression.engine.ComplexCalculation       check                            L120  org.pitest.mutationtest.engine.gregor.mutators.ConditionalsBoundaryMutator base=SURVIVED     by=GPT\rewrite,glm
+expression.engine.ComplexExpression        isBigDecimal                     L75   org.pitest.mutationtest.engine.gregor.mutators.returns.BooleanTrueReturnValsMutator base=SURVIVED     by=GPT\rewrite
+expression.engine.ComplexExpression        isUnBigDecimal                   L80   org.pitest.mutationtest.engine.gregor.mutators.returns.BooleanTrueReturnValsMutator base=SURVIVED     by=GPT\rewrite
+expression.engine.ComplexExpression        convertToMultiPrecisionSupported L85   org.pitest.mutationtest.engine.gregor.mutators.VoidMethodCallMutator base=SURVIVED     by=GPT\rewrite
+expression.engine.ComplexExpression        convertToMultiPrecisionSupported L86   org.pitest.mutationtest.engine.gregor.mutators.VoidMethodCallMutator base=SURVIVED     by=GPT\rewrite
+expression.engine.EquationSolver           &lt;init&gt;                     L44   org.pitest.mutationtest.engine.gregor.mutators.VoidMethodCallMutator base=NO_COVERAGE  by=GPT\rewrite
+expression.engine.EquationSolver           compile                          L80   org.pitest.mutationtest.engine.gregor.mutators.returns.NullReturnValsMutator base=NO_COVERAGE  by=GPT\rewrite
+expression.engine.EquationSolverExpression compile                          L72   org.pitest.mutationtest.engine.gregor.mutators.IncrementsMutator base=SURVIVED     by=GPT\rewrite
+expression.engine.EquationSolverExpression compile                          L89   org.pitest.mutationtest.engine.gregor.mutators.ConditionalsBoundaryMutator base=NO_COVERAGE  by=GPT\rewrite
+expression.engine.EquationSolverExpression compile                          L89   org.pitest.mutationtest.engine.gregor.mutators.RemoveConditionalMutator_ORDER_ELSE base=NO_COVERAGE  by=GPT\rewrite
+expression.engine.EquationSolverExpression compile                          L97   org.pitest.mutationtest.engine.gregor.mutators.returns.NullReturnValsMutator base=NO_COVERAGE  by=GPT\rewrite
+expression.engine.FunctionExpression       subCompile                       L79   org.pitest.mutationtest.engine.gregor.mutators.RemoveConditionalMutator_EQUAL_ELSE base=SURVIVED     by=GPT\rewrite
+expression.engine.FunctionExpression       subCompile                       L82   org.pitest.mutationtest.engine.gregor.mutators.RemoveConditionalMutator_EQUAL_ELSE base=SURVIVED     by=GPT\rewrite
+expression.engine.FunctionFormulaCalculation2 check                            L196  org.pitest.mutationtest.engine.gregor.mutators.RemoveConditionalMutator_EQUAL_ELSE base=SURVIVED     by=GPT\rewrite
+expression.engine.FunctionFormulaCalculation2 check                            L196  org.pitest.mutationtest.engine.gregor.mutators.RemoveConditionalMutator_EQUAL_ELSE base=SURVIVED     by=GPT\rewrite
+expression.engine.FunctionPackage$11       run                              L112  org.pitest.mutationtest.engine.gregor.mutators.MathMutator base=SURVIVED     by=GPT\rewrite
+expression.engine.FunctionPackage$9        run                              L98   org.pitest.mutationtest.engine.gregor.mutators.returns.PrimitiveReturnsMutator base=SURVIVED     by=GPT\rewrite
+expression.engine.JvmExpressionFunction    parse                            L47   org.pitest.mutationtest.engine.gregor.mutators.returns.NullReturnValsMutator base=NO_COVERAGE  by=GPT\rewrite
+expression.engine.ManyToOneNumberFunction  AllowSerialization               L66   org.pitest.mutationtest.engine.gregor.mutators.returns.BooleanTrueReturnValsMutator base=SURVIVED     by=GPT\rewrite
+expression.engine.Mathematical_Expression  register_function                L264                           base=ABSENT       by=相互借鉴
+expression.engine.NumberCalculation        check                            L98   org.pitest.mutationtest.engine.gregor.mutators.RemoveConditionalMutator_EQUAL_ELSE base=SURVIVED     by=GPT\rewrite
+expression.engine.NumberUtils              MultiplyOfRangeString            L232  org.pitest.mutationtest.engine.gregor.mutators.RemoveConditionalMutator_EQUAL_ELSE base=SURVIVED     by=GPT\rewrite
+expression.engine.PrefixExpression         convertToMultiPrecisionSupported L285  org.pitest.mutationtest.engine.gregor.mutators.RemoveConditionalMutator_EQUAL_ELSE base=SURVIVED     by=glm
+expression.engine.SingletonEquationSolving compile                          L57   org.pitest.mutationtest.engine.gregor.mutators.returns.NullReturnValsMutator base=NO_COVERAGE  by=GPT\rewrite
+expression.engine.SingletonEquationSolving calculation                      L110  org.pitest.mutationtest.engine.gregor.mutators.returns.NullReturnValsMutator base=NO_COVERAGE  by=GPT\rewrite
+expression.engine.SingletonEquationSolvingTwo compile                          L57   org.pitest.mutationtest.engine.gregor.mutators.returns.NullReturnValsMutator base=NO_COVERAGE  by=GPT\rewrite
+expression.engine.SingletonEquationSolvingTwo calculation                      L110  org.pitest.mutationtest.engine.gregor.mutators.returns.NullReturnValsMutator base=NO_COVERAGE  by=GPT\rewrite
+pricing.service.AdvancedPricingService     promotionDiscount                L244  org.pitest.mutationtest.engine.gregor.mutators.RemoveConditionalMutator_EQUAL_ELSE base=SURVIVED     by=glm
+pricing.service.AdvancedPricingService     promotionDiscount                L245  org.pitest.mutationtest.engine.gregor.mutators.RemoveConditionalMutator_EQUAL_ELSE base=SURVIVED     by=glm
+pricing.service.AdvancedPricingService     promotionDiscount                L246  org.pitest.mutationtest.engine.gregor.mutators.RemoveConditionalMutator_EQUAL_ELSE base=NO_COVERAGE  by=glm
+pricing.service.AdvancedPricingService     promotionDiscount                L248  org.pitest.mutationtest.engine.gregor.mutators.returns.NullReturnValsMutator base=NO_COVERAGE  by=glm
+pricing.service.AdvancedPricingService     promotionDiscount                L260  org.pitest.mutationtest.engine.gregor.mutators.RemoveConditionalMutator_ORDER_ELSE base=SURVIVED     by=GPT\rewrite
+pricing.service.AdvancedPricingService     couponDiscount                   L317  org.pitest.mutationtest.engine.gregor.mutators.RemoveConditionalMutator_EQUAL_ELSE base=SURVIVED     by=glm
+pricing.service.AdvancedPricingService     couponDiscount                   L318  org.pitest.mutationtest.engine.gregor.mutators.RemoveConditionalMutator_EQUAL_ELSE base=NO_COVERAGE  by=glm
+pricing.service.AdvancedPricingService     couponDiscount                   L319  org.pitest.mutationtest.engine.gregor.mutators.RemoveConditionalMutator_EQUAL_ELSE base=NO_COVERAGE  by=glm
+pricing.service.AdvancedPricingService     couponDiscount                   L321  org.pitest.mutationtest.engine.gregor.mutators.returns.NullReturnValsMutator base=NO_COVERAGE  by=glm
+progress.service.LearningProgressService   assessLesson                     L147  org.pitest.mutationtest.engine.gregor.mutators.RemoveConditionalMutator_EQUAL_ELSE base=SURVIVED     by=glm
+progress.service.LearningProgressService   lambda$noAcademicBlocker$2       L271  org.pitest.mutationtest.engine.gregor.mutators.RemoveConditionalMutator_EQUAL_ELSE base=SURVIVED     by=glm
+scheduling.service.SchedulingService       evaluateRecurrence               L355  org.pitest.mutationtest.engine.gregor.mutators.RemoveConditionalMutator_EQUAL_ELSE base=SURVIVED     by=GPT\rewrite,glm

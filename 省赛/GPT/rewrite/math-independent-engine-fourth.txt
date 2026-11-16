@@ -1,0 +1,51 @@
+    @Test
+    void rangeArithmeticAgreesWithEnumeratedTerms() {
+        String label = "RewriteRangeOracle";
+        var calc = net.mooctest.expression.engine.BracketsCalculation2.getInstance(label);
+        try {
+            for (int start = 1; start <= 3; start++) {
+                for (int end = start; end <= start + 4; end++) {
+                    int consecutiveTotal = 0;
+                    for (int x = start; x <= end; x++) consecutiveTotal += x;
+                    assertEquals(consecutiveTotal, net.mooctest.expression.engine.NumberUtils.sumOfRange(start, end));
+                    assertEquals(consecutiveTotal, net.mooctest.expression.engine.NumberUtils.sumOfRange((double) end, start), 1e-12);
+                    for (int step = 1; step <= 3; step++) {
+                        int total = 0;
+                        int product = 1;
+                        for (int x = start; x <= end; x += step) {
+                            total += x;
+                            product *= x;
+                        }
+                        assertEquals(total, net.mooctest.expression.engine.NumberUtils.sumOfRange(start, end, step), 1e-12);
+                        assertEquals(product, net.mooctest.expression.engine.NumberUtils.MultiplyOfRange(start, end, step), 1e-12);
+                        String sum = net.mooctest.expression.engine.NumberUtils.sumOfRangeString(start, end, step);
+                        String multiply = net.mooctest.expression.engine.NumberUtils.MultiplyOfRangeString(start, end, step);
+                        assertEquals(total, calc.calculation(sum).getResult(), 1e-12);
+                        assertEquals(product, Double.parseDouble(multiply), 1e-12);
+                    }
+                }
+            }
+        } finally {
+            net.mooctest.expression.engine.CalculationManagement.unregister(label);
+        }
+    }
+
+    @Test
+    void prefixCompilerProducesExactDecimalAndRejectsIncompleteSyntax() throws Exception {
+        String label = "RewritePrefix";
+        var calc = net.mooctest.expression.engine.PrefixExpressionOperation.getInstance(label);
+        try {
+            calc.check("0.1+0.2");
+            var exact = (net.mooctest.expression.engine.CalculationNumberResults)
+                    calc.compileBigDecimal("0.1+0.2", true).calculationBigDecimals(true);
+            assertEquals(0, new java.math.BigDecimal("0.3").compareTo(exact.getBigDecimalResult()));
+            var compiled = calc.compile("12/3+4*2", true);
+            assertEquals(12.0, compiled.calculation(true).getResult());
+            assertEquals(12.0, compiled.calculation(true).getResult());
+            assertThrows(net.mooctest.expression.engine.WrongFormat.class, () -> calc.check("3+"));
+            assertThrows(net.mooctest.expression.engine.WrongFormat.class, () -> calc.check("3@2"));
+            assertEquals(11.0, (Double) calc.explain("3+4*2", true).getResult());
+        } finally {
+            net.mooctest.expression.engine.CalculationManagement.unregister(label);
+        }
+    }
