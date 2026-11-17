@@ -10,11 +10,12 @@
 | `card-approval-card2-equivalence-notes.md` | card-approval 剩余未杀变异的等价 / 不可达证明（card2 / CardProbeTest） |
 | `math-assessment-equivalence-appendix.md` | math-assessment 等价性 / 不可达性证明附录 |
 
-相关文档位置：
+相关文档位置（相对本目录）：
 
-- 完整交付记录（要求、基线、验证、提交回执明细）：`deliverables/delivery-record.md`
-- 平台提交回执：`_submit/提交回执.md`
-- 各模型实现对比：`相互借鉴/测试对比与覆盖率报告.md`、`相互借鉴2/测试对比与达标报告.md`、`GPT/rewrite/StudentTest-提升报告.md`
-- 赛项规程与测试方法论：`mooctest-developer-sop/references/`
+- 完整交付记录（要求、基线、验证、提交回执明细）：`../deliverables/delivery-record.md`
+- 交付件与提交原件说明：`../deliverables/README.md`
+- 平台提交回执：`../deliverables/submitted/提交回执.md`
+- 各模型实现对比：`../相互借鉴/测试对比与覆盖率报告.md`、`../相互借鉴2/测试对比与达标报告.md`、`../GPT/rewrite/StudentTest-提升报告.md`
+- 复核脚本（JaCoCo / PIT 报告解析、基线校验、打包）：`tools/`
 
-> 历史上 `_baseline/` 是测试基线的工作目录，其中的日志、JaCoCo / PIT 中间 XML 与测试文件备份已在清理时删除；保留下来的证明文档统一收在此处。
+> 目录曾用名：`_baseline/`（测试基线工作目录，日志与 JaCoCo / PIT 中间 XML 已删除）、`_submit/`（已并入 `deliverables/submitted/`）、`_tools/`（已并入 `docs/tools/`）、`mooctest-developer-sop/`（已删除，内容为通用赛项规程与方法论）。
