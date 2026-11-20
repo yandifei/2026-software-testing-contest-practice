@@ -53,13 +53,17 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
+import org.mockito.MockedStatic;
+import org.mockito.Mockito;
 import top.lingyuzhao.varFormatter.core.VarFormatter;
 import top.lingyuzhao.varFormatter.utils.DataObj;
 
+import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.time.Clock;
 import java.time.Instant;
 import java.time.ZoneOffset;
@@ -68,6 +72,10 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Stack;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.FutureTask;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
@@ -83,6 +91,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyBoolean;
+import static org.mockito.ArgumentMatchers.anyDouble;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
@@ -360,14 +369,35 @@ class StudentTest {
         }
 
         @Test
-        void multiplyOfRangeWithEqualBoundsReturnsStartImmediately() {
-            assertEquals(3.0, NumberUtils.MultiplyOfRange(3, 3, 0));
-            assertEquals("3.0", NumberUtils.MultiplyOfRangeString(3, 3, 0));
+        void multiplyOfRangeWithEqualBoundsReturnsStartImmediately() throws Throwable {
+            // Bounded loops run in a daemon thread: a mutated zero/negative step must
+            // surface as a deterministic assertion failure, never as a hung fork.
+            FutureTask<Void> task = new FutureTask<>(() -> {
+                assertEquals(3.0, NumberUtils.MultiplyOfRange(3, 3, 0));
+                assertEquals("3.0", NumberUtils.MultiplyOfRangeString(3, 3, 0));
+                assertEquals(280.0, NumberUtils.MultiplyOfRange(1, 10, 3));
+                assertEquals("280.0", NumberUtils.MultiplyOfRangeString(1, 10, 3));
+                assertEquals("((0.0*0.0))+((1.0*1.0))+((2.0*2.0))",
+                        CumulativeCalculation.getInstance("cumulativeTimeoutInstance").formatStr("n[0,2,1](n*n)"));
+            }, null);
+            Thread thread = new Thread(task, "range-product-bounds");
+            thread.setDaemon(true);
+            thread.start();
+            try {
+                task.get(1, TimeUnit.SECONDS);
+            } catch (TimeoutException timeout) {
+                throw new AssertionError("finite range product did not return within one second", timeout);
+            } catch (ExecutionException failure) {
+                throw failure.getCause();
+            } finally {
+                task.cancel(true);
+            }
         }
 
         @Test
-        void multiplyOfRangeWithFarEndReachesFinalTerm() {
+        void multiplyOfRangeReachesTheFinalTermOnTheTestThread() {
             assertEquals(280.0, NumberUtils.MultiplyOfRange(1, 10, 3));
+            assertEquals("280.0", NumberUtils.MultiplyOfRangeString(1, 10, 3));
         }
 
         @Test
@@ -532,6 +562,35 @@ class StudentTest {
             assertEquals(0, new BigDecimal("6").compareTo(ArithmeticExpression.evaluate("2 * 3")));
             assertEquals(0, new BigDecimal("-5").compareTo(ArithmeticExpression.evaluate("  -5")));
             assertEquals(0, new BigDecimal("3").compareTo(ArithmeticExpression.evaluate("1+2  ")));
+        }
+
+        @Test
+        void privateParserEntryPointsHandleWhitespaceAndEmptyOperands() throws Exception {
+            Constructor<ArithmeticExpression> ctor =
+                    ArithmeticExpression.class.getDeclaredConstructor(String.class);
+            ctor.setAccessible(true);
+            Method atom = ArithmeticExpression.class.getDeclaredMethod("atom");
+            atom.setAccessible(true);
+
+            // atom is callable directly at a leading-space position
+            ArithmeticExpression indented = ctor.newInstance("  12.50");
+            assertEquals(0, new BigDecimal("12.50").compareTo((BigDecimal) atom.invoke(indented)));
+
+            // atom without any digit must raise the documented error, not a parse failure
+            ArithmeticExpression bare = ctor.newInstance(")");
+            assertThrows(IllegalArgumentException.class, () -> {
+                try {
+                    atom.invoke(bare);
+                } catch (InvocationTargetException e) {
+                    throw (RuntimeException) e.getCause();
+                }
+            });
+
+            // unary applies the leading minus sign
+            Method unary = ArithmeticExpression.class.getDeclaredMethod("unary");
+            unary.setAccessible(true);
+            ArithmeticExpression negative = ctor.newInstance("-5");
+            assertEquals(0, new BigDecimal("-5").compareTo((BigDecimal) unary.invoke(negative)));
         }
     }
 
@@ -1382,6 +1441,30 @@ class StudentTest {
         }
 
         @Test
+        void nullOperandMappingIsObservableWhenComparisonIsStubbed() {
+            // Stub the static comparator so the null-operand assembly branches return
+            // instead of throwing; the real comparator's rejection is covered elsewhere.
+            BooleanCalculation2 component = BooleanCalculation2.getInstance("nullOperandMappingInstance");
+            try (MockedStatic<NumberUtils> comparison = Mockito.mockStatic(NumberUtils.class)) {
+                comparison.when(() -> NumberUtils.ComparisonOperation(anyString(), anyDouble(), anyDouble()))
+                        .thenAnswer(call -> call.<Double>getArgument(1).equals(call.<Double>getArgument(2)));
+                CalculationBooleanResults both = component.calculation("null=null");
+                assertEquals(0.0, both.getLeft());
+                assertEquals(0.0, both.getRight());
+                assertTrue(both.getResult());
+                assertEquals(1, both.getResultLayers());
+                CalculationBooleanResults leftReal = component.calculation("1=null");
+                assertEquals(1.0, leftReal.getLeft());
+                assertEquals(0.0, leftReal.getRight());
+                assertFalse(leftReal.getResult());
+                CalculationBooleanResults leftNull = component.calculation("null=1");
+                assertEquals(0.0, leftNull.getLeft());
+                assertEquals(1.0, leftNull.getRight());
+                assertFalse(leftNull.getResult());
+            }
+        }
+
+        @Test
         void calculationFormatsSpacedComparisons() {
             BooleanCalculation2 calc = BooleanCalculation2.getInstance("booleanSpacedInstance");
             assertFalse(calc.calculation(" 1 > 2 ").getResult());
@@ -1466,6 +1549,14 @@ class StudentTest {
         void checkValidatesInnerFormula() {
             CumulativeCalculation calc = CumulativeCalculation.getInstance("cumulativeInnerCheckInstance");
             assertThrows(WrongFormat.class, () -> calc.check("n[0,2,1](1a2)"));
+        }
+
+        @Test
+        void formatStrRejectsAbsurdIntervalsBeforeIterating() {
+            CumulativeCalculation calc = CumulativeCalculation.getInstance("cumulativeOverflowInstance");
+            // The capacity term format.length() * |end - start| overflows int arithmetic;
+            // the descending endpoints would otherwise start iterating from 1e300.
+            assertThrows(NegativeArraySizeException.class, () -> calc.formatStr("n[1e300,-1e300,1](n)"));
         }
     }
 
@@ -3218,6 +3309,66 @@ class StudentTest {
         }
 
         @Test
+        void reflectionPinsDownBoundaryClampObjectIdentity() throws Exception {
+            Method scoreAnswer = ExamGradingService.class.getDeclaredMethod("scoreAnswer",
+                    AnswerResult.class, GradingPolicy.class, List.class);
+            scoreAnswer.setAccessible(true);
+
+            // L151: a timed-out zero award keeps the exact ZERO instance (no rescale allocation)
+            AnswerResult wrong = ans(QuestionType.SINGLE_CHOICE, "S1", "10", false, true, false,
+                    0, 0, 0, null, null, 0, 0, 0, false, false, false, false);
+            BigDecimal base = (BigDecimal) scoreAnswer.invoke(service, wrong, pol(), new ArrayList<String>());
+            assertBigDecimalEquals("0.00", base);
+            AnswerResult timedOutWrong = ans(QuestionType.SINGLE_CHOICE, "S1", "10", false, true, false,
+                    0, 0, 0, null, null, 0, 0, 0, false, false, true, false);
+            BigDecimal rescaled = (BigDecimal) scoreAnswer.invoke(service, timedOutWrong,
+                    pol(), new ArrayList<String>());
+            assertSame(base, rescaled);
+
+            // L154: a full-rubric essay at exactly the maximum keeps its computed object
+            BigDecimal maximum = new BigDecimal("10.00");
+            AnswerResult fullEssay = new AnswerResult("q", QuestionType.ESSAY, "S1", maximum,
+                    false, true, false, 0, 0, 0, null, null, 100, 0, 0,
+                    false, false, false, false);
+            BigDecimal capped = (BigDecimal) scoreAnswer.invoke(service, fullEssay,
+                    pol(), new ArrayList<String>());
+            assertBigDecimalEquals("10.00", capped);
+            assertNotSame(maximum, capped);
+
+            // L157: a negative award under negative marking is never re-clamped to zero
+            AnswerResult penalizedAnswer = ans(QuestionType.SINGLE_CHOICE, "S1", "10", false, true, false,
+                    0, 0, 0, null, null, 0, 0, 0, false, false, false, false);
+            BigDecimal penalized = (BigDecimal) scoreAnswer.invoke(service, penalizedAnswer,
+                    pol(60, true, true, "0.50", "0.00", 10, 50, 0, true, false, 3, false, false, true),
+                    new ArrayList<String>());
+            assertBigDecimalEquals("-5.00", penalized);
+
+            // L200: a neutral multiple-choice score is untouched (no zero-value subtraction)
+            Method scoreMultipleChoice = ExamGradingService.class.getDeclaredMethod("scoreMultipleChoice",
+                    AnswerResult.class, BigDecimal.class, GradingPolicy.class, List.class);
+            scoreMultipleChoice.setAccessible(true);
+            AnswerResult neutral = ans(QuestionType.MULTIPLE_CHOICE, "S1", "10", false, true, false,
+                    3, 0, 0, null, null, 0, 0, 0, false, false, false, false);
+            BigDecimal neutralScore = (BigDecimal) scoreMultipleChoice.invoke(service, neutral,
+                    new BigDecimal("10"), pol(), new ArrayList<String>());
+            assertEquals("0.000000", neutralScore.toString());
+        }
+
+        @Test
+        void reflectionPinsDownUnscoredEssayZeroScale() throws Exception {
+            Method scoreEssay = ExamGradingService.class.getDeclaredMethod("scoreEssay",
+                    AnswerResult.class, BigDecimal.class, List.class);
+            scoreEssay.setAccessible(true);
+            BigDecimal maximum = new BigDecimal("10.000");
+            AnswerResult unscored = new AnswerResult("q", QuestionType.ESSAY, "S1", maximum,
+                    false, true, false, 0, 0, 0, null, null, 0, 0, 0,
+                    false, false, false, false);
+            BigDecimal result = (BigDecimal) scoreEssay.invoke(service, unscored,
+                    maximum, new ArrayList<String>());
+            assertEquals("0.00", result.toString());
+        }
+
+        @Test
         void validateAnswerRequiresTestsOrReviewForCompiledPrograms() {
             GradingPolicy policy = pol();
             AnswerResult invalid = raw("q1", QuestionType.PROGRAMMING, "S", "10", false, true, true, 0, 0, 0,
@@ -4185,8 +4336,11 @@ class StudentTest {
             ExpressionExamGrade grade = examGrade(false, 50, List.of());
             assertThrows(NullPointerException.class, () -> service.evaluate(null, "q", grade));
             assertThrows(NullPointerException.class, () -> service.evaluate(snapshot, "q", null));
-            assertThrows(IllegalArgumentException.class, () -> service.evaluate(snapshot, null, grade));
-            assertThrows(IllegalArgumentException.class, () -> service.evaluate(snapshot, " ", grade));
+            for (String blank : new String[]{null, " "}) {
+                IllegalArgumentException e = assertThrows(IllegalArgumentException.class,
+                        () -> service.evaluate(snapshot, blank, grade));
+                assertEquals("quizLessonId must not be blank", e.getMessage());
+            }
         }
 
         @Test

@@ -1,7 +1,10 @@
 /*
  * 2026 软件测试大赛-开发者测试-预选赛
- * 题目：corporate-card-expense-approval
- * 单一测试文件 StudentTest.java：覆盖 card 校验、报销策略、权限策略与审批工作流。
+ * 题目:corporate-card-expense-approval
+ * 单一测试文件 StudentTest.java:覆盖 card 校验、报销策略、权限策略与审批工作流。
+ * 分区:除文件末尾"白盒测试区"外,其余全部为公开接口测试;
+ *      白盒测试区使用 Mockito/反射触达公开接口不可达的状态(record 构造器不变量、
+ *      包私有类、非枚举状态),如上传规则不允许,整段删除不影响其余测试。
  */
 package net.mooctest;
 
@@ -87,6 +90,8 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 class StudentTest {
 
@@ -94,6 +99,7 @@ class StudentTest {
 
     @Test
     void parser_parsesDigitsInOrderPreservingLeadingZeroes() {
+        new CreditCardParser(); // exercises the public default constructor
         assertEquals(List.of(0, 1, 2, 3, 4, 5, 6, 7, 8, 9), CreditCardParser.parseNumber("0123456789"));
         assertEquals(List.of(), CreditCardParser.parseNumber(""));
         List<Integer> first = CreditCardParser.parseNumber("123");
@@ -2193,6 +2199,13 @@ class StudentTest {
     }
 
     @Test
+    void workflowEngine_emptyStepsCheckedBeforeWorkflowIdValidation() {
+        IllegalArgumentException error = assertThrows(IllegalArgumentException.class,
+                () -> ENGINE.start(null, "R", List.of(), T0, false, true));
+        assertEquals("workflow requires at least one step", error.getMessage());
+    }
+
+    @Test
     void workflowEngine_startSkipsRequesterOnlyStepsOrStaysPending() {
         ApprovalStep requesterOnly = step("s", Set.of("R1"), StepMode.ANY_ONE, 1, false, true, null);
         WorkflowSnapshot approved = ENGINE.start("W1", "R1", List.of(requesterOnly), T0, true, true);
@@ -2263,6 +2276,15 @@ class StudentTest {
                 "fix it", T1));
         assertEquals(WorkflowState.RETURNED, returned.state());
         assertEquals(WorkflowState.PENDING, pending.state());
+    }
+
+    @Test
+    void workflowEngine_rejectShortCircuitsMultiApproverAnyOneSteps() {
+        ApprovalStep anyOne = step("s", Set.of("A", "B"), StepMode.ANY_ONE, 1, false, false, null);
+        WorkflowSnapshot pending = ENGINE.start("W1", "R1", List.of(anyOne), T0, false, true);
+        WorkflowSnapshot rejected = ENGINE.act(pending, new WorkflowAction("A", ApprovalDecision.REJECT,
+                "not acceptable", T1));
+        assertEquals(WorkflowState.REJECTED, rejected.state());
     }
 
     @Test
@@ -2366,7 +2388,9 @@ class StudentTest {
         assertThrows(IllegalStateException.class, () -> ENGINE.withdraw(noWithdrawal, "R1", T1));
         assertThrows(IllegalArgumentException.class, () -> ENGINE.withdraw(pending, "X", T1));
         assertThrows(IllegalArgumentException.class, () -> ENGINE.withdraw(pending, null, T1));
-        assertThrows(IllegalArgumentException.class, () -> ENGINE.withdraw(pending, "R1", T0.minusSeconds(1)));
+        IllegalArgumentException pastTime = assertThrows(IllegalArgumentException.class,
+                () -> ENGINE.withdraw(pending, "R1", T0.minusSeconds(1)));
+        assertEquals("withdrawal time cannot precede the previous update", pastTime.getMessage());
         assertThrows(NullPointerException.class, () -> ENGINE.withdraw(null, "R1", T1));
         WorkflowSnapshot withdrawn = ENGINE.withdraw(pending, "R1", T1);
         assertEquals(WorkflowState.WITHDRAWN, withdrawn.state());
@@ -2392,8 +2416,9 @@ class StudentTest {
         assertThrows(IllegalArgumentException.class, () -> ENGINE.cancel(pending, false, "reason", T1));
         assertThrows(IllegalArgumentException.class, () -> ENGINE.cancel(pending, true, null, T1));
         assertThrows(IllegalArgumentException.class, () -> ENGINE.cancel(pending, true, "abc", T1));
-        assertThrows(IllegalArgumentException.class, () -> ENGINE.cancel(pending, true, "reason",
-                T0.minusSeconds(1)));
+        IllegalArgumentException pastTime = assertThrows(IllegalArgumentException.class,
+                () -> ENGINE.cancel(pending, true, "reason", T0.minusSeconds(1)));
+        assertEquals("cancellation time cannot precede the previous update", pastTime.getMessage());
         assertThrows(NullPointerException.class, () -> ENGINE.cancel(null, true, "reason", T1));
         WorkflowSnapshot cancelled = ENGINE.cancel(pending, true, "reason", T1);
         assertEquals(WorkflowState.CANCELLED, cancelled.state());
@@ -3064,6 +3089,378 @@ class StudentTest {
         IllegalArgumentException notApprover = assertThrows(IllegalArgumentException.class,
                 () -> step.delegate("X", "C"));
         assertEquals("delegating actor is not an approver", notApprover.getMessage());
+    }
+
+    // ==================== final branch closure ====================
+
+    @Test
+    void accessContext_sameDepartmentHandlesMixedNullDepartments() {
+        AccessContext actorOnly = new AccessContext("A", null, "DEP", null, UserRole.EMPLOYEE,
+                ResourceAction.VIEW, ResourceType.EXPENSE_CLAIM, Sensitivity.INTERNAL, AccessScope.OWN,
+                true, false, true, true, true, true, false, false, false, false, true, true, true);
+        assertFalse(actorOnly.sameDepartment());
+        AccessContext resourceOnly = new AccessContext("A", null, null, "DEP", UserRole.EMPLOYEE,
+                ResourceAction.VIEW, ResourceType.EXPENSE_CLAIM, Sensitivity.INTERNAL, AccessScope.OWN,
+                true, false, true, true, true, true, false, false, false, false, true, true, true);
+        assertFalse(resourceOnly.sameDepartment());
+    }
+
+    @Test
+    void accessPolicy_remainingScopeAndRoleBranches() {
+        AccessDecision hrAttendance = decide(actx("A", null, UserRole.HUMAN_RESOURCES, ResourceAction.VIEW,
+                ResourceType.ATTENDANCE_RECORD, Sensitivity.CONFIDENTIAL, AccessScope.DEPARTMENT));
+        assertTrue(hrAttendance.allowed());
+        assertTrue(hrAttendance.reasons().contains("human resources role grants workforce-data access"));
+        AccessDecision hrExportPublicDoc = decide(actx("A", null, UserRole.HUMAN_RESOURCES,
+                ResourceAction.EXPORT, ResourceType.PUBLIC_DOCUMENT, Sensitivity.PUBLIC, AccessScope.OWN,
+                true, false, true, true, true, true, false, false, false, false, true, true, true));
+        assertEquals(List.of("role does not grant the requested action",
+                "requested scope is outside the actor's authority"), hrExportPublicDoc.reasons());
+        AccessDecision financeExportPublicDoc = decide(actx("A", null, UserRole.FINANCE,
+                ResourceAction.EXPORT, ResourceType.PUBLIC_DOCUMENT, Sensitivity.PUBLIC, AccessScope.OWN,
+                true, false, true, true, true, true, false, false, false, false, true, true, true));
+        assertEquals(List.of("role does not grant the requested action",
+                "requested scope is outside the actor's authority"), financeExportPublicDoc.reasons());
+        AccessDecision adminUpdatePayroll = decide(actx("A", null, UserRole.SYSTEM_ADMINISTRATOR,
+                ResourceAction.UPDATE, ResourceType.PAYROLL, Sensitivity.INTERNAL, AccessScope.ORGANIZATION));
+        assertTrue(adminUpdatePayroll.allowed());
+        AccessDecision teamLeadDepartment = decide(actx("A", null, UserRole.TEAM_LEAD, ResourceAction.VIEW,
+                ResourceType.LEAVE_REQUEST, Sensitivity.INTERNAL, AccessScope.DEPARTMENT));
+        assertFalse(teamLeadDepartment.allowed());
+        assertEquals(List.of("role does not grant the requested action",
+                "requested scope is outside the actor's authority"), teamLeadDepartment.reasons());
+        AccessDecision hrShareProfile = decide(actx("A", null, UserRole.HUMAN_RESOURCES, ResourceAction.SHARE,
+                ResourceType.EMPLOYEE_PROFILE, Sensitivity.INTERNAL, AccessScope.DEPARTMENT,
+                true, false, true, true, true, true, false, false, false, false, true, true, true));
+        assertTrue(hrShareProfile.allowed());
+        AccessDecision financeViewUntrusted = decide(actx("A", null, UserRole.FINANCE, ResourceAction.VIEW,
+                ResourceType.EXPENSE_CLAIM, Sensitivity.INTERNAL, AccessScope.DEPARTMENT,
+                true, false, true, true, false, true, false, false, false, false, true, true, true));
+        assertTrue(financeViewUntrusted.allowed());
+        AccessDecision adminViewLegalHold = decide(actx("A", null, UserRole.SYSTEM_ADMINISTRATOR,
+                ResourceAction.VIEW, ResourceType.CONTRACT, Sensitivity.INTERNAL, AccessScope.ORGANIZATION,
+                true, false, true, true, true, true, false, false, true, false, true, true, true));
+        assertTrue(adminViewLegalHold.allowed());
+    }
+
+    @Test
+    void workflowEngine_skipRequesterBranchesAndDelegationToRequester() {
+        WorkflowSnapshot skipStep = ENGINE.start("W1", "R1", List.of(step("s", Set.of("R1", "A"),
+                StepMode.REQUIRED_COUNT, 2, false, true, null)), T0, false, true);
+        WorkflowSnapshot byOther = ENGINE.act(skipStep, new WorkflowAction("A", ApprovalDecision.APPROVE,
+                null, T1));
+        assertEquals(WorkflowState.IN_PROGRESS, byOther.state());
+        assertEquals(1, byOther.currentStep().approvals());
+        WorkflowSnapshot openStep = ENGINE.start("W2", "R1", List.of(step("s", Set.of("A", "B"),
+                StepMode.REQUIRED_COUNT, 2, true, false, null)), T0, false, true);
+        WorkflowSnapshot delegatedToRequester = ENGINE.delegate(openStep, "A", "R1", T1);
+        assertEquals(WorkflowState.IN_PROGRESS, delegatedToRequester.state());
+        assertEquals(Set.of("R1", "B"), delegatedToRequester.currentStep().step().approverIds());
+    }
+
+    @Test
+    void expenseService_reviewSupportsNonEmployeeCreatorsAndExpenseAudit() {
+        CorporateCardExpenseService svc = service();
+        AccessContext manager = new AccessContext("M1", null, "DEP", "DEP", UserRole.TEAM_LEAD,
+                ResourceAction.CREATE, ResourceType.EXPENSE_CLAIM, Sensitivity.INTERNAL, AccessScope.OWN,
+                true, false, true, true, true, true, false, false, false, false, true, true, true);
+        ExpenseCardReview review = svc.review(defaultClaim(List.of(validItem())), Map.of(), oneRate(), TODAY,
+                manager);
+        assertTrue(review.readyForApproval());
+        ExpenseItem suspected = customItem("i1", ExpenseCategory.MEAL, "10", PaymentMethod.PERSONAL_CARD,
+                ReceiptType.STANDARD_RECEIPT, TODAY.minusDays(5), 0, false, false, true);
+        ExpenseCardReview audited = svc.review(defaultClaim(List.of(suspected)), Map.of(), oneRate(), TODAY,
+                createActor("E1"));
+        assertTrue(audited.auditRequired());
+        assertFalse(audited.readyForApproval());
+    }
+
+    @Test
+    void expensePolicy_inactiveProjectWithoutBillableIsNotFatal() {
+        ExpenseClaim inactive = claim("E1", EmployeeGrade.STAFF, TODAY, List.of(validItem()),
+                true, false, false, false, 0);
+        ExpenseAssessment result = new ExpensePolicy().assess(inactive, oneRate(), TODAY);
+        assertFalse(result.rejected());
+        assertEquals(List.of(), result.violations());
+    }
+
+    @Test
+    void expensePolicy_internationalTripWithoutHotelMealTransportKeepsBaseCap() {
+        ExpenseClaim international = claim("E1", EmployeeGrade.STAFF, TODAY, List.of(
+                customItem("i1", ExpenseCategory.SOFTWARE, "800", PaymentMethod.PERSONAL_CARD,
+                        ReceiptType.STANDARD_RECEIPT, TODAY.minusDays(5), 0, false, false, false)),
+                true, true, false, true, 0);
+        ExpenseAssessment result = new ExpensePolicy().assess(international, oneRate(), TODAY);
+        assertEquals(new BigDecimal("800.00"), result.reimbursableAmount());
+    }
+
+    @Test
+    void expenseItem_nullItemIdAndClaimNullEmployeeIdAreRejected() {
+        assertThrows(IllegalArgumentException.class, () -> new ExpenseItem(null, ExpenseCategory.MEAL,
+                new BigDecimal("10"), Currency.getInstance("CNY"), TODAY.minusDays(5), "M",
+                "Business purpose here", ReceiptType.STANDARD_RECEIPT, PaymentMethod.PERSONAL_CARD,
+                0, false, false, false));
+        assertThrows(IllegalArgumentException.class, () -> new ExpenseClaim("c", null, EmployeeGrade.STAFF,
+                TODAY, "CC", List.of(validItem()), true, false, false, true, 0));
+    }
+
+    @Test
+    void expensePolicy_corporateCardLargePurchaseSkipsPersonalWarning() {
+        ExpenseAssessment corporateOffice = assess(List.of(
+                customItem("i1", ExpenseCategory.OFFICE_SUPPLIES, "500.01", PaymentMethod.CORPORATE_CARD,
+                        ReceiptType.STANDARD_RECEIPT, TODAY.minusDays(5), 0, false, false, false)));
+        assertFalse(corporateOffice.warnings()
+                .contains("large office purchase should use corporate procurement"));
+    }
+
+    @Test
+    void accessPolicy_crossRegionOnlyBlocksExports() {
+        AccessDecision crossRegionView = decide(actx("A", null, UserRole.AUDITOR, ResourceAction.VIEW,
+                ResourceType.EXPENSE_CLAIM, Sensitivity.INTERNAL, AccessScope.TEAM,
+                true, false, true, true, true, true, false, false, false, false, true, false, true));
+        assertTrue(crossRegionView.allowed());
+    }
+
+    // ==================== survivor-focused mutation kills ====================
+
+    /** TypeChecker L24: with plain digits, Dankort's range is shadowed (45-49 by VISA, 50xx by Maestro); only letter digits escape it, see the test below. */
+    @Test
+    void typeChecker_dankortRangeIsShadowed() {
+        assertEquals(CreditCardType.VISA, TypeChecker.checkType("4571000000000000"));
+        assertEquals(CreditCardType.VISA, TypeChecker.checkType("4999000000000000"));
+        assertEquals(CreditCardType.MAESTRO, TypeChecker.checkType("5018000000000000"));
+    }
+
+    /**
+     * Letter digits (Character.getNumericValue 10-35) are two-digit values, so the longer
+     * prefixes parsed by earlier validators become 7-10 digit numbers outside their ranges,
+     * while the later validator's shorter prefix still matches.
+     */
+    @Test
+    void typeChecker_letterDigitsEscapeShadowingValidators() {
+        assertEquals(CreditCardType.CHINA_UNIONPAY, TypeChecker.checkType("62A0000000000000"));
+        assertEquals(CreditCardType.RUPAY, TypeChecker.checkType("60A0000000000000"));
+        assertEquals(CreditCardType.INTERPAYMENT, TypeChecker.checkType("636A000000000000"));
+        assertEquals(CreditCardType.INSTAPAYMENT, TypeChecker.checkType("637A000000000000"));
+        assertEquals(CreditCardType.DANKORT, TypeChecker.checkType("5019A00000000000"));
+    }
+
+    /**
+     * Unicode numerals exceed the letter range (U+1375 = 40): the target's longer parse lands
+     * exactly on its IIN while the shadowing validator's shorter parse falls out of range.
+     */
+    @Test
+    void typeChecker_unicodeNumeralsEscapeShadowingValidators() {
+        assertEquals(CreditCardType.NPS_PRIDNESTROVIE, TypeChecker.checkType("060547፵" + "0".repeat(9)));
+        assertEquals(CreditCardType.LANKAPAY, TypeChecker.checkType("03571B" + "0".repeat(10)));
+    }
+
+    /** AccessPolicy L36: internal sensitivity must not trigger the security-training denial. */
+    @Test
+    void accessPolicy_internalSensitivityDoesNotRequireTraining() {
+        AccessDecision decision = decide(actx("A", "A", UserRole.EMPLOYEE, ResourceAction.VIEW,
+                ResourceType.EXPENSE_CLAIM, Sensitivity.INTERNAL, AccessScope.OWN,
+                true, false, true, true, true, true, false, false, false, false, true, true, false));
+        assertTrue(decision.allowed());
+        assertEquals(List.of("employee may access owned resource", "actor owns the resource",
+                "actor and resource belong to the same department"), decision.reasons());
+    }
+
+    /** AccessPolicy L37: restricted sensitivity without training must still add the denial. */
+    @Test
+    void accessPolicy_restrictedWithoutTrainingIsDenied() {
+        AccessDecision decision = decide(actx("A", "A", UserRole.EMPLOYEE, ResourceAction.VIEW,
+                ResourceType.EXPENSE_CLAIM, Sensitivity.RESTRICTED, AccessScope.OWN,
+                true, false, true, true, true, true, false, false, false, false, true, true, false));
+        assertEquals(List.of("security training is required"), decision.reasons());
+    }
+
+    /** AccessPolicy L64: legal hold only blocks DELETE and ARCHIVE, not other actions. */
+    @Test
+    void accessPolicy_legalHoldAllowsViewing() {
+        AccessDecision decision = decide(actx("A", null, UserRole.SYSTEM_ADMINISTRATOR,
+                ResourceAction.VIEW, ResourceType.CONTRACT, Sensitivity.INTERNAL, AccessScope.ORGANIZATION,
+                true, false, true, true, true, true, false, false, true, false, true, true, true));
+        assertTrue(decision.allowed());
+    }
+
+    /** AccessPolicy L108: an allowed decision with no notes falls back to the generic grant reason. */
+    @Test
+    void accessPolicy_grantedWithoutNotesUsesFallbackReason() {
+        AccessDecision decision = decide(actx("A", null, "D1", "D2", UserRole.TEAM_LEAD, ResourceAction.VIEW,
+                ResourceType.PUBLIC_DOCUMENT, Sensitivity.INTERNAL, AccessScope.TEAM,
+                true, false, true, true, true, true, false, false, false, false, true, true, true));
+        assertTrue(decision.allowed());
+        assertEquals(List.of("access granted by role and scope policy"), decision.reasons());
+    }
+
+    /** AccessPolicy L165: department managers keep the employee-level owned-resource access. */
+    @Test
+    void accessPolicy_departmentManagerKeepsOwnedResourceAccess() {
+        AccessDecision decision = decide(actx("A", "A", UserRole.DEPARTMENT_MANAGER, ResourceAction.VIEW,
+                ResourceType.EXPENSE_CLAIM, Sensitivity.INTERNAL, AccessScope.OWN));
+        assertTrue(decision.allowed());
+    }
+
+    /** AccessPolicy L191: HR workforce access must not extend to other resource types. */
+    @Test
+    void accessPolicy_humanResourcesCannotViewContracts() {
+        AccessDecision decision = decide(actx("A", null, UserRole.HUMAN_RESOURCES, ResourceAction.VIEW,
+                ResourceType.CONTRACT, Sensitivity.INTERNAL, AccessScope.DEPARTMENT));
+        assertFalse(decision.allowed());
+    }
+
+    /** AccessPolicy L244/L245: administrators may update payroll/profile records. */
+    @Test
+    void accessPolicy_administratorMayUpdatePayroll() {
+        AccessDecision decision = decide(actx("A", null, UserRole.SYSTEM_ADMINISTRATOR,
+                ResourceAction.UPDATE, ResourceType.PAYROLL, Sensitivity.INTERNAL, AccessScope.ORGANIZATION));
+        assertTrue(decision.allowed());
+    }
+
+    /** AccessPolicy L278-282: TEAM scope is restricted to the listed roles. */
+    @Test
+    void accessPolicy_guestTeamScopeIsDenied() {
+        AccessDecision decision = decide(actx(UserRole.GUEST, ResourceAction.VIEW,
+                ResourceType.PUBLIC_DOCUMENT, AccessScope.TEAM, Sensitivity.PUBLIC));
+        assertFalse(decision.allowed());
+    }
+
+    /** AccessPolicy L293-295: DEPARTMENT scope is restricted to the listed roles. */
+    @Test
+    void accessPolicy_guestDepartmentScopeIsDenied() {
+        AccessDecision decision = decide(actx(UserRole.GUEST, ResourceAction.VIEW,
+                ResourceType.PUBLIC_DOCUMENT, AccessScope.DEPARTMENT, Sensitivity.PUBLIC));
+        assertFalse(decision.allowed());
+    }
+
+    /** ExpensePolicy L160: an item aged exactly 30 days is not late. */
+    @Test
+    void expensePolicy_exactlyThirtyDaysOldIsNotLate() {
+        ExpenseAssessment result = assess(List.of(
+                customItem("i1", ExpenseCategory.MEAL, "10", PaymentMethod.PERSONAL_CARD,
+                        ReceiptType.STANDARD_RECEIPT, TODAY.minusDays(30), 0, false, false, false)));
+        assertEquals(List.of(), result.warnings());
+    }
+
+    /** ExpensePolicy L255/L256: international trips only raise HOTEL/MEAL/LOCAL_TRANSPORT caps. */
+    @Test
+    void expensePolicy_internationalTripDoesNotRaiseAirfareCap() {
+        ExpenseClaim international = claim("E1", EmployeeGrade.STAFF, TODAY, List.of(
+                customItem("i1", ExpenseCategory.AIRFARE, "3000.01", PaymentMethod.PERSONAL_CARD,
+                        ReceiptType.STANDARD_RECEIPT, TODAY.minusDays(5), 0, false, false, false)),
+                true, true, false, true, 0);
+        ExpenseAssessment result = new ExpensePolicy().assess(international, oneRate(), TODAY);
+        assertEquals(new BigDecimal("3000.00"), result.reimbursableAmount());
+    }
+
+    // ==================== 白盒测试区 (white-box: Mockito/反射/非枚举状态; 上传前按当场规则决定是否保留) ====================
+
+    /**
+     * LuhnValidator is package-private; reflection reaches algorithmCheck with a negative
+     * Character.getNumericValue ('-') on a doubled position. The digit-summing branch would
+     * throw on the negative value, so the comparison that selects the branch is observable.
+     */
+    @Test
+    void luhn_negativeDigitOnDoubledPositionOnlySummedWhenBranchSaysSo() throws Exception {
+        Class<?> cls = Class.forName("net.mooctest.card.LuhnValidator");
+        java.lang.reflect.Constructor<?> ctor = cls.getDeclaredConstructor();
+        ctor.setAccessible(true);
+        Object validator = ctor.newInstance();
+        java.lang.reflect.Method algorithmCheck = cls.getDeclaredMethod("algorithmCheck", String.class);
+        algorithmCheck.setAccessible(true);
+        java.lang.reflect.Method sumOfDigits = cls.getDeclaredMethod("sumOfDigits", int.class);
+        sumOfDigits.setAccessible(true);
+        // digits [-1, 2] reversed to [2, -1]: doubled -2 is stored directly, sum == 0 -> valid.
+        assertTrue((Boolean) algorithmCheck.invoke(validator, "-2"));
+        assertEquals(7, sumOfDigits.invoke(validator, 7));
+    }
+
+    /**
+     * ExpensePolicy L107: a billable claim whose blank cost center could never pass the record
+     * constructor is simulated with a Mockito mock; the FATAL branch must still fire.
+     */
+    @Test
+    void expensePolicy_billableClaimWithBlankCostCenterIsFatal() {
+        ExpenseClaim claim = mock(ExpenseClaim.class);
+        when(claim.clientBillable()).thenReturn(true);
+        when(claim.costCenter()).thenReturn(" ");
+        when(claim.submittedDate()).thenReturn(TODAY);
+        when(claim.items()).thenReturn(List.of(validItem()));
+        when(claim.previousClaimsThisMonth()).thenReturn(0);
+        when(claim.employeeGrade()).thenReturn(EmployeeGrade.STAFF);
+        when(claim.projectActive()).thenReturn(true);
+        when(claim.managerPreApproved()).thenReturn(true);
+        when(claim.internationalTrip()).thenReturn(false);
+        ExpenseAssessment result = new ExpensePolicy().assess(claim, oneRate(), TODAY);
+        assertTrue(result.rejected());
+        assertEquals(List.of("FATAL: client-billable claim requires cost center"), result.violations());
+    }
+
+    /**
+     * ExpensePolicy L293: a meal item carrying attendees can never pass the record constructor;
+     * the mock reaches the rule that must reject it.
+     */
+    @Test
+    void expensePolicy_mealWithAttendeesIsAViolation() {
+        ExpenseItem item = mock(ExpenseItem.class);
+        when(item.itemId()).thenReturn("i1");
+        when(item.category()).thenReturn(ExpenseCategory.MEAL);
+        when(item.amount()).thenReturn(new BigDecimal("10"));
+        when(item.currency()).thenReturn(Currency.getInstance("CNY"));
+        when(item.incurredDate()).thenReturn(TODAY.minusDays(5));
+        when(item.merchant()).thenReturn("Merchant X");
+        when(item.businessPurpose()).thenReturn("Business purpose here");
+        when(item.receiptType()).thenReturn(ReceiptType.STANDARD_RECEIPT);
+        when(item.paymentMethod()).thenReturn(PaymentMethod.PERSONAL_CARD);
+        when(item.attendeeCount()).thenReturn(5);
+        when(item.alcoholIncluded()).thenReturn(false);
+        when(item.personalComponent()).thenReturn(false);
+        when(item.suspectedDuplicate()).thenReturn(false);
+        ExpenseAssessment result = assess(List.of(item));
+        assertTrue(result.violations().contains("meal attendee count belongs under entertainment"));
+    }
+
+    /**
+     * White-box: a snapshot whose state is not one of the WorkflowState enum constants (mock)
+     * reaches ensureActive's non-active rejection; either mutated comparison would skip it.
+     */
+    @Test
+    void workflowEngine_nonActiveNonTerminalSnapshotIsRejected() {
+        WorkflowSnapshot snapshot = mock(WorkflowSnapshot.class);
+        WorkflowState bogus = mock(WorkflowState.class);
+        ApprovalStep step = step("s", Set.of("A"), StepMode.ANY_ONE, 1, false, false, null);
+        List<StepProgress> steps = List.of(StepProgress.empty(step));
+        when(snapshot.terminal()).thenReturn(false);
+        when(snapshot.state()).thenReturn(bogus);
+        when(snapshot.steps()).thenReturn(steps);
+        when(snapshot.currentStepIndex()).thenReturn(0);
+        when(snapshot.currentStep()).thenReturn(steps.get(0));
+        when(snapshot.updatedAt()).thenReturn(T0);
+        when(snapshot.createdAt()).thenReturn(T0);
+        when(snapshot.version()).thenReturn(1L);
+        when(snapshot.urgent()).thenReturn(false);
+        when(snapshot.withdrawalAllowed()).thenReturn(true);
+        when(snapshot.workflowId()).thenReturn("W1");
+        when(snapshot.requesterId()).thenReturn("R1");
+        IllegalStateException error = assertThrows(IllegalStateException.class,
+                () -> ENGINE.act(snapshot, new WorkflowAction("A", ApprovalDecision.APPROVE, null, T1)));
+        assertEquals("workflow is not active", error.getMessage());
+    }
+
+    /** AccessPolicy L27/L32/L85/L86/L220: RESTRICTED-only and action-only checks must not leak into other contexts. */
+    @Test
+    void accessPolicy_restrictedOnlyChecksDoNotLeakIntoOtherContexts() {
+        AccessDecision internal = decide(actx("A", "A", UserRole.EMPLOYEE, ResourceAction.VIEW,
+                ResourceType.EXPENSE_CLAIM, Sensitivity.INTERNAL, AccessScope.OWN,
+                true, false, false, false, true, true, false, false, false, false, true, true, true));
+        assertTrue(internal.allowed());
+        assertFalse(internal.auditRequired());
+        assertTrue(internal.reasons().contains("employee may access owned resource"));
+        AccessDecision financeRestrictedView = decide(actx("A", null, UserRole.FINANCE, ResourceAction.VIEW,
+                ResourceType.EXPENSE_CLAIM, Sensitivity.RESTRICTED, AccessScope.DEPARTMENT,
+                true, false, true, true, true, true, false, false, false, false, true, true, true));
+        assertTrue(financeRestrictedView.allowed());
     }
 
     // ==================== helpers ====================

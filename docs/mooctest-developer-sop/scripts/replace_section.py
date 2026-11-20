@@ -126,7 +126,8 @@ def main():
     m = re.search(r'^[ \t]*class\s+' + re.escape(container) + r'\s*\{', main, re.M)
     if not m:
         raise SystemExit(f'main file has no container class {container!r} — '
-                         f'initial merge should use merge_engine.py')
+                         f'container mode needs merge_engine.py; flat mode has no container to replace, '
+                         f'regenerate the file from the frozen main copy plus the frozen fragment instead')
     open_idx = m.end() - 1
     close_idx = match_braces(main, open_idx)
 

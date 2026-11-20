@@ -1,4 +1,25 @@
-import sys, re
+"""Splice a probe/fragment class body into a main test class as a @Nested container.
+
+Usage:
+    python -B scripts/merge_engine.py <main.java> <fragment.java> [out.java] [container-name]
+    python -B scripts/merge_engine.py <main.java> <fragment.java> [out.java] --nested-name NAME --check-conflicts
+
+Container mode only: the fragment body becomes `@org.junit.jupiter.api.Nested class NAME { ... }`.
+Do NOT use this when the target form must be flat (see references/suite-porting.md section 4):
+flat merging has no script here, splice the fragment body and recompile.
+
+`--check-conflicts` runs member_conflicts.py first and aborts (exit 1) when member names collide,
+because a same-signature method or same-name nested class does not necessarily fail the build.
+
+Exit codes: 0 = merged, 1 = refused (conflict / no imports block / unparsable), 2 = usage error.
+"""
+import argparse
+import io
+import re
+import sys
+
+import member_conflicts
+
 
 def read(p):
     return open(p, encoding='utf-8').read()
@@ -113,9 +134,37 @@ def merge(main_path, engine_path, nested_name='ExpressionEngineTests', out_path=
             f.write(merged)
     return merged
 
+def main(argv=None):
+    parser = argparse.ArgumentParser(
+        description='Splice a fragment class body into a main test class as a @Nested container.',
+        epilog='Container mode only; for flat merging splice the body yourself (see suite-porting.md section 4).')
+    parser.add_argument('main_file')
+    parser.add_argument('fragment_file')
+    parser.add_argument('out', nargs='?', default=None, help='output path; omit to only report the size')
+    parser.add_argument('nested_name_positional', nargs='?', default=None, help='container name (legacy positional form)')
+    parser.add_argument('--nested-name', dest='nested_name', default=None)
+    parser.add_argument('--check-conflicts', action='store_true',
+                        help='refuse to merge when the two files declare the same member name')
+    args = parser.parse_args(argv)
+
+    if args.check_conflicts:
+        try:
+            conflicts = sorted(set(member_conflicts.collect(args.main_file)) &
+                               set(member_conflicts.collect(args.fragment_file)))
+        except (OSError, ValueError) as error:
+            print(f'PARSE_ERROR {error}')
+            return 1
+        if conflicts:
+            print('REFUSED member name conflicts: ' + ', '.join(conflicts))
+            print('rename or drop one side first; a same-name member may silently shadow, not fail the build')
+            return 1
+
+    nested = args.nested_name or args.nested_name_positional or 'ExpressionEngineTests'
+    merged = merge(args.main_file, args.fragment_file, nested_name=nested, out_path=args.out)
+    print(f'merged chars: {len(merged)} -> {args.out}')
+    print(f'note: container mode (@Nested {nested}); flat merging is manual, see suite-porting.md section 4')
+    return 0
+
+
 if __name__ == '__main__':
-    main_path, engine_path = sys.argv[1], sys.argv[2]
-    out = sys.argv[3] if len(sys.argv) > 3 else None
-    nested = sys.argv[4] if len(sys.argv) > 4 else 'ExpressionEngineTests'
-    merged = merge(main_path, engine_path, nested_name=nested, out_path=out)
-    print('merged chars:', len(merged), '->', out)
+    sys.exit(main())
